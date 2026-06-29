@@ -1,0 +1,161 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+.venv_old_from_onedrive/
+venv/
+env/
+
+# Local data and generated outputs
+# Heavy experimental data are ignored, but README.md and .gitkeep files
+# are versioned to preserve the reproducible project structure.
+
+# data root
+data/*
+!data/
+!data/README.md
+!data/.gitkeep
+
+# raw data
+data/raw/*
+!data/raw/
+!data/raw/README.md
+!data/raw/.gitkeep
+
+# logs
+data/logs/*
+!data/logs/
+!data/logs/README.md
+!data/logs/.gitkeep
+
+# Phase 05 curated lightweight summaries allowed for academic reproducibility
+!data/logs/phase05_experiments/
+data/logs/phase05_experiments/*
+!data/logs/phase05_experiments/summary/
+data/logs/phase05_experiments/summary/*
+!data/logs/phase05_experiments/summary/phase05_run_summary.csv
+
+
+# Public reproducibility curated data and manifests
+!data/curated/
+data/curated/*
+!data/curated/phase05/
+data/curated/phase05/*
+!data/curated/phase05/phase05_run_summary.csv
+
+!data/raw_manifest/
+data/raw_manifest/*
+!data/raw_manifest/raw_logs_inventory.csv
+!data/raw_manifest/raw_logs_checksums.sha256
+!data/raw_manifest/raw_logs_availability.md
+
+!data/schema/
+data/schema/*
+!data/schema/phase05_run_summary_schema.md
+!data/schema/phase05_metrics_dictionary.md
+# processed data
+data/processed/*
+!data/processed/
+!data/processed/README.md
+!data/processed/.gitkeep
+
+# outputs root
+outputs/*
+!outputs/
+!outputs/README.md
+!outputs/.gitkeep
+
+# output figures
+outputs/figures/*
+!outputs/figures/
+!outputs/figures/README.md
+!outputs/figures/.gitkeep
+
+# output tables
+outputs/tables/*
+!outputs/tables/
+!outputs/tables/README.md
+!outputs/tables/.gitkeep
+!outputs/tables/phase05_experiments/
+outputs/tables/phase05_experiments/*
+!outputs/tables/phase05_experiments/phase05_accepted_runs.csv
+!outputs/tables/phase05_experiments/phase05_scenario_treatment_summary.csv
+!outputs/tables/phase05_experiments/phase05_pairwise_differences.csv
+!outputs/tables/phase05_experiments/phase05_completion_check.csv
+!outputs/tables/phase05_experiments/phase05_formal_report.md
+
+# Phase 06 curated lightweight analysis outputs allowed for academic reproducibility
+!outputs/tables/phase06_analysis/
+outputs/tables/phase06_analysis/*
+!outputs/tables/phase06_analysis/phase06_categorical_tests.csv
+!outputs/tables/phase06_analysis/phase06_dataset_audit.csv
+!outputs/tables/phase06_analysis/phase06_dataset_audit.md
+!outputs/tables/phase06_analysis/phase06_descriptive_by_scenario_treatment.csv
+!outputs/tables/phase06_analysis/phase06_descriptive_by_treatment.csv
+!outputs/tables/phase06_analysis/phase06_descriptive_statistics.md
+!outputs/tables/phase06_analysis/phase06_effect_sizes.csv
+!outputs/tables/phase06_analysis/phase06_hypothesis_tests.csv
+!outputs/tables/phase06_analysis/phase06_hypothesis_tests.md
+!outputs/tables/phase06_analysis/phase06_incident_analysis.md
+!outputs/tables/phase06_analysis/phase06_incident_extreme_runs.csv
+!outputs/tables/phase06_analysis/phase06_incident_summary.csv
+!outputs/tables/phase06_analysis/phase06_pairwise_difference_summary.csv
+!outputs/tables/phase06_analysis/phase06_scenario_analysis.csv
+!outputs/tables/phase06_analysis/phase06_scenario_analysis.md
+!outputs/tables/phase06_analysis/phase06_scenario_factor_summary.csv
+!outputs/tables/phase06_analysis/phase06_scenario_rankings.csv
+!outputs/tables/phase06_analysis/phase06_success_abort_summary.csv
+!outputs/tables/phase06_analysis/phase06_terminal_state_counts.csv
+
+# Other generated outputs
+src/perception/outputs/
+/experiments/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+*.key
+*.pem
+
+# Local helper scripts not published in the repository
+scripts/*.py
+!scripts/verify_public_package.py
+!scripts/generate_checksums.py
+
+# Local bibliography PDFs
+docs/Referencias/**/*.pdf
+docs/Referencias/**/*.PDF
+
+# Generated image files
+*.png
+*.PNG
+*.svg
+*.SVG
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.webp
+*.WEBP
+*.gif
+*.GIF
+*.bmp
+*.BMP
+*.tif
+*.TIF
+*.tiff
+*.TIFF

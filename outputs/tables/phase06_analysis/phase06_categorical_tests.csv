@@ -1,0 +1,2 @@
+hypothesis,outcome,n_pairs,t0_success_t1_success,t0_success_t1_failure,t0_failure_t1_success,t0_failure_t1_failure,selected_test,p_value,alpha,decision,interpretation
+HE4,landing_success,80,80,0,0,0,McNemar exact binomial,1.0,0.05,fail_to_reject_H0,No se detecta diferencia en proporcion de exito; ambos tratamientos presentan exito completo.

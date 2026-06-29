@@ -1,0 +1,6 @@
+hypothesis,metric,n,mean_difference,median_difference,sd_difference,cohen_dz,percent_change_mean,practical_direction
+HE1,final_error_m_delta_t0_minus_t1,80,0.5624918107810839,0.6602369064638849,0.19728752736939448,2.8511270746877644,0.9646370483196551,T1 reduce el error final frente a T0
+HE2,landing_time_s_delta_t0_minus_t1,80,-8.2498125,-8.417,2.664936976924785,-3.095687654692647,-0.3997028807725827,T1 modifica el tiempo de aterrizaje frente a T0
+HE3,visual_dispersion_norm_delta_t0_minus_t1,78,-0.022674637486400154,-0.008697306201346677,0.05682089555735451,-0.39905456019278285,-0.352955274659324,T1 modifica la dinamica lateral frente a T0 mediante dispersion visual/lateral
+HE3,command_count_delta_t1_minus_t0,80,46.6625,45.5,15.35070505122225,3.039762658737597,0.5456804560736734,T1 modifica la actividad correctiva frente a T0 mediante conteo de comandos
+HE3,max_abs_horizontal_command_m_s_delta_t1_minus_t0,80,0.0674045081436634,0.06492839058240255,0.02457181611586478,2.7431634611714237,,T1 modifica la intensidad correctiva lateral frente a T0

@@ -1,0 +1,310 @@
+{
+  "metadata": {
+    "project": "uav-landing-ai",
+    "phase": "fase05",
+    "description": "Configuracion formal para experimentacion T0/T1",
+    "profile_alignment": "Experimentacion formal y comparacion entre tratamientos T0/T1",
+    "experiment_id": "phase05_t0_t1_formal_v1"
+  },
+  "environment": {
+    "simulator": "AirSimNH",
+    "autopilot": "PX4 SITL",
+    "vehicle_name": "Drone1",
+    "camera_name": "bottom_center",
+    "mavlink_direct_address": "udpin:0.0.0.0:14601",
+    "python_version": "3.10"
+  },
+  "frozen_t1": {
+    "basis": "Fase 04 validada con MAVLink directo, ArUco y descenso asistido por vision",
+    "script": "src/control/run_phase05_t1_visual_descent.py",
+    "source_validated_script": "src/control/run_mavlink_visual_servo_test.py",
+    "detector": "aruco",
+    "dictionary_name": "DICT_4X4_50",
+    "marker_id": 23,
+    "marker_scale_x": 1.2,
+    "marker_scale_y": 1.2,
+    "marker_scale_z": 0.01,
+    "texture_size_px": 2048,
+    "marker_size_ratio": 0.72,
+    "max_horizontal_speed_m_s": 0.10,
+    "descent_rate_m_s": 0.08,
+    "centered_cycles_required": 5,
+    "landing_complete_altitude_m": 1.05,
+    "max_missing_detections": 6,
+    "control_frequency_hz": 5.0
+  },
+  "treatments": [
+    {
+      "treatment_id": "T0",
+      "name": "Descenso base sin correccion visual inteligente",
+      "script": "src/control/run_phase05_t0_baseline_descent.py",
+      "description": "Mantiene velocidad lateral cero y desciende por MAVLink directo sin usar el error visual para corregir.",
+      "uses_visual_correction": false,
+      "logs_passive_perception": true
+    },
+    {
+      "treatment_id": "T1",
+      "name": "Aterrizaje asistido por agente visual ArUco",
+      "script": "src/control/run_phase05_t1_visual_descent.py",
+      "description": "Usa deteccion ArUco y comandos MAVLink directos para corregir lateralmente antes y durante el descenso.",
+      "uses_visual_correction": true,
+      "logs_passive_perception": false
+    }
+  ],
+  "pilot_protocol": {
+    "description": "Bloque minimo para validar estructura de logs y comparabilidad antes del experimento completo.",
+    "runs": [
+      {
+        "scenario_id": "P05_PILOT_CENTER_H2_YAW0",
+        "treatments": ["T0", "T1"],
+        "repetitions_per_treatment": 1
+      },
+      {
+        "scenario_id": "P05_PILOT_OFFSET_Y_POS_H2_YAW0",
+        "treatments": ["T0", "T1"],
+        "repetitions_per_treatment": 1
+      }
+    ],
+    "minimum_total_runs": 4
+  },
+  "formal_design": {
+    "scenarios": 8,
+    "treatments": 2,
+    "repetitions_per_treatment": 10,
+    "minimum_total_runs": 160,
+    "execution_policy": "No ejecutar el bloque completo hasta validar el piloto T0/T1."
+  },
+  "formal_execution": {
+    "run_plan_output": "outputs/tables/phase05_formal_run_plan.csv",
+    "commands_output": "outputs/tables/phase05_formal_run_commands.md",
+    "recommended_block_size_runs": 8,
+    "takeoff_samples_after": 8,
+    "telemetry_check_duration_s": 5,
+    "marker_z": 0.0,
+    "duration_by_initial_height_m": {
+      "2.0": 40,
+      "3.0": 55
+    },
+    "yaw_setup": {
+      "script": "src/control/run_phase05_yaw_setup.py",
+      "tolerance_deg": 3.0,
+      "timeout_s": 25.0,
+      "yaw_speed_deg_s": 10.0,
+      "yaw_kp": 0.8,
+      "method": "offboard-yaw-rate",
+      "mode": "absolute"
+    }
+  },
+  "protocol_amendments": [
+    {
+      "amendment_id": "P05-A01",
+      "date": "2026-05-05",
+      "scope": "T1 visual descent",
+      "field": "frozen_t1.max_missing_detections",
+      "previous_value": 3,
+      "updated_value": 6,
+      "basis": "S02/YAW15 produced two excluded T1 runs near the 0.80 m threshold due to four consecutive marker losses despite safe landing and low final error; diagnostic run P05_S02_H2_Y04_YAW15_DIAG succeeded with max_missing_detections=6."
+    },
+    {
+      "amendment_id": "P05-A02",
+      "date": "2026-05-06",
+      "scope": "formal yaw initialization",
+      "field": "formal_execution.yaw_setup.mode",
+      "previous_value": "relative",
+      "updated_value": "absolute",
+      "basis": "S02 logs showed planned_yaw_deg=15.0 but actual precheck yaw varied because the previous helper applied +15 degrees relative to the residual vehicle attitude. Future generated command blocks set the absolute yaw target for both YAW0 and YAW15 scenarios."
+    },
+    {
+      "amendment_id": "P05-A03",
+      "date": "2026-05-08",
+      "scope": "formal descent terminal handoff",
+      "field": "frozen_t1.landing_complete_altitude_m",
+      "previous_value": 0.80,
+      "updated_value": 1.05,
+      "basis": "S02/YAW15 with absolute yaw lost the marker before reaching 0.90 m, while diagnostic run P05_S02_H2_Y04_YAW15_ABSYAW_H105_DIAG reached the visual landing threshold without aborts, with 100% accepted detections, zero lost detections, low final error, and safe LOITER disarmed closure. Generated formal commands apply this terminal threshold consistently to both T0 and T1 command scripts for paired comparability."
+    }
+  ],
+  "scenario_factors": {
+    "initial_height_m": [2.0, 3.0],
+    "lateral_offset_y_m": [0.4, 0.8],
+    "initial_yaw_deg": [0.0, 15.0],
+    "offset_x_m": 0.0
+  },
+  "scenarios": [
+    {
+      "scenario_id": "P05_S01_H2_Y04_YAW0",
+      "initial_height_m": 2.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.4,
+      "yaw_deg": 0.0
+    },
+    {
+      "scenario_id": "P05_S02_H2_Y04_YAW15",
+      "initial_height_m": 2.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.4,
+      "yaw_deg": 15.0
+    },
+    {
+      "scenario_id": "P05_S03_H2_Y08_YAW0",
+      "initial_height_m": 2.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.8,
+      "yaw_deg": 0.0
+    },
+    {
+      "scenario_id": "P05_S04_H2_Y08_YAW15",
+      "initial_height_m": 2.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.8,
+      "yaw_deg": 15.0
+    },
+    {
+      "scenario_id": "P05_S05_H3_Y04_YAW0",
+      "initial_height_m": 3.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.4,
+      "yaw_deg": 0.0
+    },
+    {
+      "scenario_id": "P05_S06_H3_Y04_YAW15",
+      "initial_height_m": 3.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.4,
+      "yaw_deg": 15.0
+    },
+    {
+      "scenario_id": "P05_S07_H3_Y08_YAW0",
+      "initial_height_m": 3.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.8,
+      "yaw_deg": 0.0
+    },
+    {
+      "scenario_id": "P05_S08_H3_Y08_YAW15",
+      "initial_height_m": 3.0,
+      "offset_x_m": 0.0,
+      "offset_y_m": 0.8,
+      "yaw_deg": 15.0
+    }
+  ],
+  "metrics": {
+    "primary": [
+      "final_error_m",
+      "landing_time_s",
+      "lateral_stability",
+      "landing_success"
+    ],
+    "support": [
+      "accepted_detection_rate",
+      "lost_detection_count",
+      "latency_ms_mean",
+      "command_count",
+      "abort_count",
+      "mean_abs_error_x_norm",
+      "std_error_x_norm"
+    ]
+  },
+  "logging": {
+    "run_id_prefix": "phase05",
+    "raw_logs_dir": "data/logs/phase05_experiments/raw",
+    "summary_dir": "data/logs/phase05_experiments/summary",
+    "figures_dir": "outputs/figures/phase05_experiments",
+    "save_annotated_images_pilot": true
+  },
+  "acceptance_criteria": {
+    "connection": "PX4 local position valid and AirSim bottom camera returns images.",
+    "t0": "Descends without lateral visual correction and logs passive marker error.",
+    "t1": "Uses frozen ArUco visual correction, reaches landing threshold and closes safely.",
+    "comparability": "Each accepted T0/T1 pair uses the same scenario_id, marker settings, initial height, offset and yaw declaration.",
+    "exclusion": "External simulator/autopilot failures are logged as incidences and excluded from comparative metrics."
+  },
+  "curation": {
+    "status_values": ["accepted", "excluded", "superseded"],
+    "duplicate_policy": "exclude_unresolved_duplicates",
+    "rules": {
+      "required_phase": "fase05",
+      "valid_treatments": ["T0", "T1"],
+      "required_metadata": [
+        "scenario_id",
+        "experiment_id",
+        "treatment_pair_id",
+        "repetition"
+      ],
+      "excluded_scenario_suffixes": ["_DIAG"],
+      "require_land_complete": true,
+      "require_terminal_disarmed": true,
+      "require_no_abort": true,
+      "require_landing_success": true,
+      "require_t1_landing_threshold": true,
+      "max_t0_horizontal_command_m_s": 0.001
+    },
+    "superseded_runs": [
+      {
+        "run_id": "phase05_20260505_133149_3b8adca2",
+        "superseded_by": "phase05_20260505_154421_71272606",
+        "reason": "T1 offset pilot corrected laterally but did not reach landing_threshold_reached=True within the visual loop; repeated with duration 40 s."
+      },
+      {
+        "run_id": "phase05_20260506_225204_cd5af6c5",
+        "superseded_by": "phase05_20260508_232252_383f3956",
+        "reason": "S02 R05 T0 repeated as part of a complete corrective pair under P05-A03 with landing_complete_altitude_m=1.05."
+      },
+      {
+        "run_id": "phase05_20260506_225359_b159c30b",
+        "superseded_by": "phase05_20260508_232456_adf8e39a",
+        "reason": "S02 R05 T1 aborted by terminal marker loss before P05-A03; replaced by corrective T1 under landing_complete_altitude_m=1.05."
+      },
+      {
+        "run_id": "phase05_20260506_225630_93cc83e3",
+        "superseded_by": "phase05_20260508_232703_429b8f5b",
+        "reason": "S02 R06 T1 aborted by terminal marker loss before P05-A03; replaced by corrective T1 under landing_complete_altitude_m=1.05."
+      },
+      {
+        "run_id": "phase05_20260506_225833_1e65c812",
+        "superseded_by": "phase05_20260508_232901_d1c52dd5",
+        "reason": "S02 R06 T0 repeated as part of a complete corrective pair under P05-A03 with landing_complete_altitude_m=1.05."
+      },
+      {
+        "run_id": "phase05_20260506_230025_ebc765b5",
+        "superseded_by": "phase05_20260508_233055_78205df8",
+        "reason": "S02 R07 T0 repeated as part of a complete corrective pair under P05-A03 with landing_complete_altitude_m=1.05."
+      },
+      {
+        "run_id": "phase05_20260506_230225_10e6ea83",
+        "superseded_by": "phase05_20260508_233244_dd7fa514",
+        "reason": "S02 R07 T1 aborted by terminal marker loss before P05-A03; replaced by corrective T1 under landing_complete_altitude_m=1.05."
+      },
+      {
+        "run_id": "phase05_20260509_001502_30366ed5",
+        "superseded_by": "phase05_20260509_001816_20a45b99",
+        "reason": "S03 R04 T1 interrupted by AirSimNH closure before land_complete; repeated after restarting the simulator and replaced by an accepted T1 run."
+      },
+      {
+        "run_id": "phase05_20260509_001242_70bda245",
+        "superseded_by": "phase05_20260509_003307_468906cb",
+        "reason": "S03 R03 T1 aborted by early marker loss; repeated under the same P05-A03 configuration and replaced by an accepted T1 run."
+      },
+      {
+        "run_id": "phase05_20260509_212824_d3037b9b",
+        "superseded_by": "phase05_20260509_214330_4ae8d025",
+        "reason": "S04 R04 T1 aborted by early marker loss; repeated under the same P05-A03 configuration and replaced by an accepted T1 run."
+      },
+      {
+        "run_id": "phase05_20260608_121619_f18597c3",
+        "superseded_by": "phase05_20260608_122434_ac873b0b",
+        "reason": "S07 R08 T0 generated a duplicate during Run 136; the first complete attempt is superseded by the final complete T0 R08 repetition selected for formal analysis."
+      },
+      {
+        "run_id": "phase05_20260608_121826_222fe0bc",
+        "superseded_by": "phase05_20260608_122434_ac873b0b",
+        "reason": "S07 R08 T0 generated a duplicate during Run 136; the second complete attempt is superseded by the final complete T0 R08 repetition selected for formal analysis."
+      }
+    ]
+  },
+  "notes": [
+    "Yaw is part of the formal design but the first pilot block should use yaw_deg=0 until yaw initialization is validated.",
+    "The marker can be spawned after takeoff to avoid physical or visual interference with PX4 takeoff.",
+    "T0 may log perception passively, but it must never use visual error to generate lateral commands."
+  ]
+}

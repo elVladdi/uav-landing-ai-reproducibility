@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "project": "uav-landing-ai",
+    "phase": "fase03_fase04",
+    "description": "Configuracion del modulo de percepcion visual HSV y fiduciario ArUco"
+  },
+  "camera": {
+    "name": "bottom_center",
+    "image_type": "Scene",
+    "width": 640,
+    "height": 480
+  },
+  "active_detector": "aruco_fiducial",
+  "detector": {
+    "method": "hsv_color_contour",
+    "target_description": "Plataforma o marcador de aterrizaje con color contrastante",
+    "hsv_lower": [0, 80, 80],
+    "hsv_upper": [15, 255, 255],
+    "hsv_lower_alt": [170, 80, 80],
+    "hsv_upper_alt": [180, 255, 255],
+    "hsv_ranges": [
+      {
+        "name": "red_low",
+        "lower": [0, 80, 80],
+        "upper": [15, 255, 255]
+      },
+      {
+        "name": "red_high",
+        "lower": [170, 80, 80],
+        "upper": [180, 255, 255]
+      },
+      {
+        "name": "blue_marker",
+        "lower": [95, 70, 70],
+        "upper": [135, 255, 255]
+      },
+      {
+        "name": "cyan_ring",
+        "lower": [75, 60, 80],
+        "upper": [100, 255, 255]
+      }
+    ],
+    "use_alt_range": true,
+    "blur_kernel_size": 5,
+    "morph_kernel_size": 5,
+    "min_area_px": 1000,
+    "max_area_ratio": 0.8,
+    "min_confidence": 0.05,
+    "min_circularity": 0.0
+  },
+  "fiducial_detector": {
+    "method": "aruco_fiducial",
+    "family": "aruco",
+    "target_description": "Marcador fiduciario ArUco para aterrizaje visual",
+    "dictionary_name": "DICT_4X4_50",
+    "marker_id": 23,
+    "min_area_px": 400,
+    "min_confidence": 0.50,
+    "corner_refinement": true,
+    "reject_other_ids": true,
+    "preprocess_variants": true,
+    "upscale_factor": 1.5
+  },
+  "environment_overrides": {
+    "Blocks": {
+      "hsv_ranges": [
+        {
+          "name": "red_low",
+          "lower": [0, 80, 80],
+          "upper": [15, 255, 255]
+        },
+        {
+          "name": "red_high",
+          "lower": [170, 80, 80],
+          "upper": [180, 255, 255]
+        },
+        {
+          "name": "blue_marker",
+          "lower": [95, 70, 70],
+          "upper": [135, 255, 255]
+        },
+        {
+          "name": "cyan_ring",
+          "lower": [75, 60, 80],
+          "upper": [100, 255, 255]
+        }
+      ],
+      "fiducial_detector": {
+        "min_area_px": 400
+      }
+    },
+    "AirSimNH": {
+      "hsv_ranges": [
+        {
+          "name": "red_low",
+          "lower": [0, 80, 80],
+          "upper": [15, 255, 255]
+        },
+        {
+          "name": "red_high",
+          "lower": [170, 80, 80],
+          "upper": [180, 255, 255]
+        },
+        {
+          "name": "blue_marker",
+          "lower": [95, 70, 70],
+          "upper": [135, 255, 255]
+        },
+        {
+          "name": "cyan_ring",
+          "lower": [75, 60, 80],
+          "upper": [100, 255, 255]
+        }
+      ],
+      "min_area_px": 30000,
+      "min_confidence": 0.30,
+      "fiducial_detector": {
+        "min_area_px": 400,
+        "min_confidence": 0.50,
+        "preprocess_variants": true,
+        "upscale_factor": 1.5
+      }
+    }
+  },
+  "paths": {
+    "raw_data_dir": "data/raw",
+    "processed_data_dir": "data/processed/phase03_perception",
+    "logs_dir": "data/logs",
+    "figures_dir": "outputs/figures/phase03_perception"
+  },
+  "validation": {
+    "run_id_prefix": "phase03",
+    "save_annotated_images": true,
+    "negative_image_policy": "detected_false_or_low_confidence",
+    "minimum_positive_samples": 5,
+    "minimum_repeatable_runs": 3,
+    "environments": [
+      {
+        "name": "Blocks",
+        "role": "Prueba controlada del detector visual con fondo simple"
+      },
+      {
+        "name": "AirSimNH",
+        "role": "Entorno experimental principal para evidencia metodologica"
+      }
+    ],
+    "scenario_ids": {
+      "blocks_controlled_marker": "P03_BLOCKS_MARKER",
+      "airsimnh_marker_validation": "P03_AIRSIMNH_MARKER"
+    }
+  }
+}

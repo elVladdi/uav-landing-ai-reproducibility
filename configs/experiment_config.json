@@ -1,0 +1,154 @@
+{
+  "metadata": {
+    "project": "uav-landing-ai",
+    "phase": "fase03",
+    "description": "Configuracion experimental para percepcion visual y validacion del entorno",
+    "owner": "Vladimir Molleapasa Gutierrez"
+  },
+  "runtime": {
+    "python_version": "3.10",
+    "simulator": "AirSim",
+    "autopilot": "PX4",
+    "control_mode_phase02": "AirSim SimpleFlight para validacion inicial; PX4 preparado para validacion MAVSDK",
+    "control_mode_phase03": "Percepcion visual sobre imagenes de AirSim; sin cierre de control autonomo completo"
+  },
+  "vehicle": {
+    "name": "Drone1",
+    "type": "multirotor",
+    "default_altitude_m": 5.0,
+    "default_speed_mps": 2.0,
+    "default_hover_seconds": 2.0
+  },
+  "camera": {
+    "primary_camera": "bottom_center",
+    "support_camera": "front_center",
+    "image_type": "Scene",
+    "width": 640,
+    "height": 480,
+    "expected_resolution": "640x480"
+  },
+  "paths": {
+    "raw_data_dir": "data/raw",
+    "logs_dir": "data/logs",
+    "processed_data_dir": "data/processed",
+    "figures_dir": "outputs/figures",
+    "videos_dir": "outputs/videos",
+    "reports_dir": "outputs/reports"
+  },
+  "treatments": [
+    {
+      "treatment_id": "pilot",
+      "name": "Validacion tecnica de entorno",
+      "description": "Pruebas de conexion, camara, estado, comando basico y logging sin agente visual completo"
+    },
+    {
+      "treatment_id": "T0",
+      "name": "Descenso base",
+      "description": "Descenso o aterrizaje base sin correccion visual inteligente"
+    },
+    {
+      "treatment_id": "T1",
+      "name": "Agente visual",
+      "description": "Aterrizaje autonomo asistido por agente de vision por computador"
+    }
+  ],
+  "pilot_scenarios": [
+    {
+      "scenario_id": "P1",
+      "name": "Descenso vertical basico",
+      "initial_height_level": "baja",
+      "initial_height_m": 3.0,
+      "lateral_offset_m": 0.0,
+      "yaw_deg": 0.0,
+      "purpose": "Verificar descenso vertical basico y respuesta del UAV"
+    },
+    {
+      "scenario_id": "P2",
+      "name": "Offset lateral bajo",
+      "initial_height_level": "media",
+      "initial_height_m": 5.0,
+      "lateral_offset_m": 1.0,
+      "yaw_deg": 0.0,
+      "purpose": "Verificar lectura de posicion con desplazamiento lateral"
+    },
+    {
+      "scenario_id": "P3",
+      "name": "Offset lateral con orientacion leve",
+      "initial_height_level": "media",
+      "initial_height_m": 5.0,
+      "lateral_offset_m": 1.0,
+      "yaw_deg": 15.0,
+      "purpose": "Verificar estabilidad con orientacion inicial distinta"
+    }
+  ],
+  "logging": {
+    "run_id_prefix": "phase03",
+    "sample_interval_seconds": 0.5,
+    "duration_seconds": 5.0,
+    "required_fields": [
+      "run_id",
+      "sample_idx",
+      "timestamp",
+      "phase",
+      "treatment",
+      "scenario_id",
+      "vehicle_name",
+      "simulator",
+      "autopilot",
+      "camera_name",
+      "camera_resolution",
+      "position_x",
+      "position_y",
+      "position_z",
+      "orientation_w",
+      "orientation_x",
+      "orientation_y",
+      "orientation_z",
+      "velocity_x",
+      "velocity_y",
+      "velocity_z",
+      "command_type",
+      "command_value",
+      "status",
+      "notes"
+    ]
+  },
+  "perception": {
+    "config_file": "configs/perception_config.json",
+    "detector_method": "hsv_color_contour",
+    "target": "plataforma o marcador de aterrizaje con color contrastante",
+    "outputs": [
+      "imagen_anotada",
+      "csv_validacion",
+      "json_resultado_en_vivo"
+    ],
+    "result_fields": [
+      "detected",
+      "center_x",
+      "center_y",
+      "error_x_px",
+      "error_y_px",
+      "error_x_norm",
+      "error_y_norm",
+      "area_px",
+      "area_ratio",
+      "confidence"
+    ]
+  },
+  "acceptance_criteria": {
+    "airsim_connection": "AirSim confirma conexion y el vehiculo Drone1 responde",
+    "camera_capture": "Se guarda una imagen valida desde bottom_center",
+    "state_logging": "Se genera un CSV con run_id y estado basico del UAV",
+    "basic_command": "El UAV ejecuta una maniobra minima de despegue, hover y aterrizaje",
+    "px4_connection": "MAVSDK detecta PX4 y muestra health, armado y posicion NED",
+    "repeatability": "Al menos dos corridas comparables se ejecutan con la misma configuracion",
+    "marker_visibility": "La plataforma o marcador aparece claramente en la camara bottom_center",
+    "perception_offline": "El detector procesa imagenes guardadas y genera CSV con posicion relativa",
+    "perception_live": "El pipeline captura una imagen desde AirSim, ejecuta deteccion y guarda evidencia anotada"
+  },
+  "notes": [
+    "Este archivo conserva parametros de Fase 02 y agrega la base de Fase 03.",
+    "Los escenarios piloto no reemplazan el diseno experimental formal T0/T1.",
+    "Para validar Fase 03 debe confirmarse que la plataforma senalizada aparece en la camara bottom_center."
+  ]
+}

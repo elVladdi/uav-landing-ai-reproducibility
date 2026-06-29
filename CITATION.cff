@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "UAV Landing AI Reproducibility Package"
+message: "If you use this reproducibility package, please cite it."
+type: software
+authors:
+  - family-names: "Molleapasa Gutierrez"
+    given-names: "Vladimir"
+repository-code: "https://github.com/elVladdi/uav-landing-ai"
+abstract: "Reproducibility package for an AirSim-PX4 UAV landing experiment comparing a baseline descent against an ArUco-based visual Offboard assistance treatment."
+keywords:
+  - UAV
+  - AirSim
+  - PX4
+  - visual landing
+  - reproducibility
+  - ArUco
+license: MIT

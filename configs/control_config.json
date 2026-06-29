@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "project": "uav-landing-ai",
+    "phase": "fase04",
+    "description": "Configuracion para integracion gradual de percepcion visual con PX4 Offboard",
+    "profile_alignment": "Integracion con autopiloto y logica de aterrizaje autonomo"
+  },
+  "px4": {
+    "connection_timeout_seconds": 5.0,
+    "telemetry_timeout_seconds": 2.0,
+    "require_local_position": true
+  },
+  "airsim": {
+    "environment": "AirSimNH",
+    "vehicle_name": "Drone1",
+    "camera_name": "bottom_center",
+    "image_type": "Scene"
+  },
+  "offboard": {
+    "control_frequency_hz": 5.0,
+    "preflight_setpoint_seconds": 1.0,
+    "takeoff_altitude_m": 2.0,
+    "takeoff_acceptance_ratio": 0.55,
+    "takeoff_min_acceptance_altitude_m": 1.0,
+    "takeoff_timeout_seconds": 45.0,
+    "hover_seconds_after_takeoff": 3.0,
+    "hover_test_duration_seconds": 10.0,
+    "max_forward_m_s": 0.35,
+    "max_right_m_s": 0.35,
+    "max_down_m_s": 0.20,
+    "max_yawspeed_deg_s": 0.0
+  },
+  "visual_servo": {
+    "gain_forward_mps_per_norm_error": 0.25,
+    "gain_right_mps_per_norm_error": 0.25,
+    "forward_error_sign": -1.0,
+    "right_error_sign": 1.0,
+    "center_tolerance_norm": 0.08,
+    "command_deadband_norm": 0.03,
+    "min_confidence": 0.30,
+    "max_missing_detections": 5
+  },
+  "landing": {
+    "centered_cycles_required": 5,
+    "align_timeout_seconds": 20.0,
+    "max_trial_seconds": 45.0,
+    "descent_rate_m_s": 0.12,
+    "landing_complete_altitude_m": 0.35,
+    "abort_action": "land"
+  },
+  "logging": {
+    "run_id_prefix": "phase04",
+    "logs_dir": "data/logs/phase04_control",
+    "figures_dir": "outputs/figures/phase04_control",
+    "save_periodic_images": false
+  },
+  "safety_notes": [
+    "Los scripts que envian comandos PX4 requieren --confirm-send.",
+    "Validar signos de control en dry-run antes de cualquier comando lateral.",
+    "sim_pose queda excluido como mecanismo de control autonomo."
+  ]
+}
