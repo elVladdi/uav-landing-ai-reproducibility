@@ -2,6 +2,8 @@
 
 The curated data and derived tables required to reproduce the reported analytical results are included in this public branch.
 
+Curated datasets and derived CSV files included in this repository are released under the Creative Commons Attribution 4.0 International License (CC BY 4.0), unless a specific file states otherwise. Code, scripts and software utilities are released under the MIT License. See `LICENSES.md`.
+
 ## Included in Git
 
 - `data/curated/phase05/phase05_run_summary.csv`
@@ -19,3 +21,5 @@ The public manifest in `data/raw_manifest/` records expected raw-log references 
 ## Recommended article wording
 
 The curated dataset, configuration snapshot and scripts required to reproduce the reported tables and statistical analyses are available in the public repository. Full raw execution logs are not stored in Git due to size and simulator-specific artifacts; their inventory and availability notes are provided in the repository manifest.
+
+The curated datasets and derived tables are released under CC BY 4.0, while code and reproducibility scripts are released under the MIT License.

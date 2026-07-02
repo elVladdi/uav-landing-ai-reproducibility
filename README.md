@@ -6,6 +6,8 @@ This repository contains the public reproducibility package for a simulation-bas
 
 The repository is intended to support analytical reproducibility of the reported results from curated CSV files, configuration snapshots, analysis scripts, derived tables, and verification utilities. It is not presented as a real-flight validation package.
 
+For exact reproduction of the published analytical tables, use Python 3.10 with the dependencies in `requirements.txt`, including `scipy`. If `scipy` is unavailable, the hypothesis-test script can still run with documented standard-library fallbacks, but those fallback outputs should be treated as approximate and should not replace the reported thesis/article statistics.
+
 ## Study overview
 
 The experiment compares two matched landing treatments:
@@ -32,32 +34,34 @@ The result should be interpreted as a precision–time–correction trade-off: t
 
 | Reproducibility level | Status | Scope |
 |---|---|---|
-| Analytical reproduction | Supported | Rebuild curated tables, Phase 06 statistical outputs, and publication-oriented analysis artifacts from versioned CSV inputs. |
-| Experimental rerun | Documented | Requires a local AirSimNH–PX4 SITL setup, simulator configuration, PX4 environment, and machine-specific runtime settings. |
+| Exact analytical reproduction | Supported with full dependencies | Rebuild curated tables, Phase 06 statistical outputs, and publication-oriented analysis artifacts from versioned CSV inputs using the scientific Python stack in `requirements.txt`. |
+| Lightweight analytical check | Supported | Verify package completeness, dataset consistency, and expected audit checks without rerunning the simulator. |
+| Experimental rerun | Documented | Requires a local AirSimNH-PX4 SITL setup, simulator configuration, PX4 environment, and machine-specific runtime settings. |
 | Raw-log audit | Limited | Full raw simulator/control/perception logs, videos, screenshots, temporary diagnostic artifacts, and local virtual environments are not stored in Git. Availability is documented through the manifest. |
 
 ## Repository structure
 
 ```text
 uav-landing-ai-reproducibility/
-├─ .github/workflows/                 # Public repository checks, if enabled
-├─ configs/                            # Experiment, perception, control, and environment templates
-├─ data/                               # Curated data and raw-log manifest references
-├─ docs/                               # Methodology, environment notes, traceability, and article-support documentation
-├─ outputs/                            # Versioned derived outputs and analysis tables
-├─ reproducibility_manifest/           # Reproducibility inventory and availability notes
-├─ scripts/                            # Reproduction and utility scripts
-├─ src/                                # Source code for analysis and verification routines
-│  └─ analysis/                        # Phase 06 audit, descriptive, hypothesis, scenario, and incident analyses
-├─ tests/                              # Verification utilities and lightweight checks
-├─ CITATION.cff                        # Citation metadata
-├─ DATA_AVAILABILITY.md                # Data availability statement
-├─ LICENSE                             # MIT license
-├─ README.md                           # Main English README
-├─ README.es.md                        # Spanish README
-├─ REPRODUCIBILITY.md                  # Reproducibility guide
-├─ SOFTWARE_ENVIRONMENT.md             # Software and runtime environment notes
-└─ requirements.txt                    # Python dependencies
+|-- .github/workflows/                 # Public repository checks, if enabled
+|-- configs/                           # Experiment, perception, control, and environment templates
+|-- data/                              # Curated data and raw-log manifest references
+|-- docs/                              # Methodology, environment notes, traceability, and article-support documentation
+|-- outputs/                           # Versioned derived outputs and analysis tables
+|-- reproducibility_manifest/          # Reproducibility inventory, checksums, and expected outputs
+|-- scripts/                           # Reproduction and utility scripts
+|-- src/                               # Source code for analysis and verification routines
+|   `-- analysis/                      # Phase 06 audit, descriptive, hypothesis, scenario, and incident analyses
+|-- tests/                             # Verification utilities and lightweight checks
+|-- CITATION.cff                       # Citation metadata
+|-- DATA_AVAILABILITY.md               # Data availability statement
+|-- LICENSE                            # MIT license
+|-- LICENSES.md                        # License scope by artifact type
+|-- README.md                          # Main English README
+|-- README.es.md                       # Spanish README
+|-- REPRODUCIBILITY.md                 # Reproducibility guide
+|-- SOFTWARE_ENVIRONMENT.md            # Software and runtime environment notes
+`-- requirements.txt                   # Python dependencies
 ```
 
 ## Included artifacts
@@ -90,12 +94,12 @@ Their expected inventory and availability notes are documented in the repository
 
 ### Analytical reproduction
 
-Recommended analytical environment:
+Recommended analytical environment for exact table reproduction:
 
 - Windows with PowerShell;
 - Python 3.10;
 - virtual environment `.venv`;
-- Python packages listed in `requirements.txt`:
+- Python packages listed in `requirements.txt`, especially:
   - `airsim==1.8.1`
   - `numpy`
   - `opencv-contrib-python`
@@ -105,6 +109,8 @@ Recommended analytical environment:
   - `scipy`
   - `pandas`
   - `matplotlib`
+
+`scipy` is required for exact reproduction of the reported Shapiro-Wilk, paired t-test, and Wilcoxon signed-rank outputs. Without it, `src/analysis/phase06_hypothesis_tests.py` writes clearly labeled fallback results for inspection only.
 
 ### Full experimental rerun
 
@@ -151,18 +157,24 @@ The recommended one-command analytical reproduction is:
 A successful verification should report:
 
 ```text
+Public reproducibility package checks passed.
 Checks: 37 | OK: 37 | REVIEW: 0
+SciPy available: True
 ```
+
+If the output reports `SciPy available: False`, install the dependencies from `requirements.txt` and rerun the workflow before using the hypothesis-test tables as article or thesis evidence.
 
 The same workflow can be executed step by step:
 
 ```powershell
 cd "<REPO_ROOT>"
+.\.venv\Scripts\python.exe scripts\verify_public_package.py
 .\.venv\Scripts\python.exe src\analysis\phase06_dataset_audit.py
 .\.venv\Scripts\python.exe src\analysis\phase06_descriptive_statistics.py
 .\.venv\Scripts\python.exe src\analysis\phase06_hypothesis_tests.py
 .\.venv\Scripts\python.exe src\analysis\phase06_scenario_analysis.py
 .\.venv\Scripts\python.exe src\analysis\phase06_incident_analysis.py
+.\.venv\Scripts\python.exe scripts\generate_checksums.py --check
 ```
 
 Expected analytical outputs include:
@@ -173,6 +185,39 @@ Expected analytical outputs include:
 - scenario-level summaries;
 - incident and boundary-case summaries;
 - publication-oriented derived tables.
+
+## Verification checklist
+
+Before using this repository as a public reproducibility artifact, run:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\verify_public_package.py
+.\.venv\Scripts\python.exe scripts\generate_checksums.py --check
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"
+.\scripts\reproduce_analysis.ps1
+```
+
+Expected results:
+
+```text
+Public reproducibility package checks passed.
+Checksum file is current.
+Ran 6 tests ... OK
+Checks: 37 | OK: 37 | REVIEW: 0
+SciPy available: True
+```
+
+## Reproduction map
+
+| Input or source | Script | Main outputs |
+|---|---|---|
+| `data/curated/phase05/phase05_run_summary.csv` | `src/analysis/phase05_metrics.py` | Accepted-run, pairwise-difference, and scenario-treatment Phase 05 tables. |
+| `outputs/tables/phase05_experiments/phase05_accepted_runs.csv` | `src/analysis/phase06_dataset_audit.py` | Dataset audit CSV and Markdown report with 37 consistency checks. |
+| `outputs/tables/phase05_experiments/phase05_accepted_runs.csv` | `src/analysis/phase06_descriptive_statistics.py` | Treatment, scenario, pairwise, and success summaries. |
+| `outputs/tables/phase05_experiments/phase05_pairwise_differences.csv` | `src/analysis/phase06_hypothesis_tests.py` | Hypothesis-test tables, effect sizes, and categorical success test. |
+| Phase 05 accepted-run and pairwise tables | `src/analysis/phase06_scenario_analysis.py` | Scenario-level rankings and factor summaries. |
+| Phase 05 accepted-run table | `src/analysis/phase06_incident_analysis.py` | Incident, boundary-case, and terminal-state summaries. |
+| Public reproducibility files | `scripts/generate_checksums.py --check` | SHA256 integrity check against `reproducibility_manifest/files.sha256`. |
 
 ## Core analytical inputs
 
@@ -222,7 +267,16 @@ For machine-readable citation metadata, see `CITATION.cff`.
 
 ## License
 
-This repository is released under the MIT License. See `LICENSE`.
+This repository uses licenses by artifact type. See `LICENSES.md` for the full scope statement.
+
+| Artifact type | License |
+|---|---|
+| Code, scripts, tests, configuration templates, and reproducibility utilities | MIT License; see `LICENSE`. |
+| Documentation, Markdown reports, methodology notes, article-support text, and explanatory tables | Creative Commons Attribution 4.0 International License (CC BY 4.0). |
+| Curated datasets and derived CSV files included for analytical reproducibility | CC BY 4.0, unless a specific file states otherwise. |
+| Third-party software, simulators, libraries, and dependencies | Their respective licenses. |
+
+The MIT license applies primarily to software artifacts. The CC BY 4.0 scope is used for academic documentation, curated data, and derived tables so they can be reused with attribution in thesis, article, and reproducibility contexts.
 
 ## Contact
 

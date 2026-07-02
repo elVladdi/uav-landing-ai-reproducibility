@@ -5,8 +5,8 @@ type: software
 authors:
   - family-names: "Molleapasa Gutierrez"
     given-names: "Vladimir"
-repository-code: "https://github.com/elVladdi/uav-landing-ai"
-abstract: "Reproducibility package for an AirSim-PX4 UAV landing experiment comparing a baseline descent against an ArUco-based visual Offboard assistance treatment."
+repository-code: "https://github.com/elVladdi/uav-landing-ai-reproducibility"
+abstract: "Public reproducibility package for an AirSimNH-PX4 UAV landing experiment comparing a baseline descent against an ArUco-based visual Offboard assistance treatment."
 keywords:
   - UAV
   - AirSim
@@ -14,4 +14,4 @@ keywords:
   - visual landing
   - reproducibility
   - ArUco
-license: MIT
+license: "MIT AND CC-BY-4.0"
