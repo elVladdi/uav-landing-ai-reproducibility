@@ -1,8 +1,24 @@
-"""Generate Phase 06 hypothesis tests from paired Phase 05 outputs.
+"""Generate Phase 06 paired hypothesis-test outputs.
 
-The script uses scipy when available. If scipy is not installed, it still
-produces reproducible approximate outputs with standard-library statistics and
-labels the affected methods as approximations.
+Inputs:
+    - `outputs/tables/phase05_experiments/phase05_pairwise_differences.csv`
+    - `outputs/tables/phase05_experiments/phase05_accepted_runs.csv`
+
+Outputs:
+    - `outputs/tables/phase06_analysis/phase06_hypothesis_tests.csv`
+    - `outputs/tables/phase06_analysis/phase06_effect_sizes.csv`
+    - `outputs/tables/phase06_analysis/phase06_categorical_tests.csv`
+    - `outputs/tables/phase06_analysis/phase06_hypothesis_tests.md`
+
+Reproducibility role:
+    Recomputes the inferential statistics reported for the paired T0/T1
+    comparison from versioned Phase 05 tables.
+
+Scope:
+    Analytical reproduction only. These tests do not validate real-flight
+    performance, physical touchdown, operational deployment, or sim-to-real
+    transfer. SciPy is used for the exact reported tests when available; the
+    documented standard-library fallbacks are approximate inspection aids.
 """
 from __future__ import annotations
 
@@ -178,6 +194,12 @@ def normal_sf(value: float) -> float:
 
 
 def shapiro_or_fallback(values: list[float]) -> tuple[str, object, object, str]:
+    """Run Shapiro-Wilk normality testing or a labeled fallback.
+
+    The fallback is provided so the public workflow can still complete in a
+    minimal Python environment. Article or thesis statistics should be produced
+    with SciPy available.
+    """
     if len(values) < 3:
         return "not_applicable", "", "", "insufficient_n"
     if SCIPY_AVAILABLE:
@@ -261,6 +283,7 @@ def select_and_run_test(values: list[float], alternative: str, normality_decisio
 
 
 def hypothesis_tests(pairwise_rows: list[dict[str, str]]) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    """Compute paired continuous-outcome tests and effect-size summaries."""
     test_rows: list[dict[str, object]] = []
     effect_rows: list[dict[str, object]] = []
     for item in HYPOTHESES:
@@ -335,6 +358,13 @@ def percent_change(rows: list[dict[str, str]], metric: str) -> object:
 
 
 def add_lateral_dynamics_metrics(pairwise_rows: list[dict[str, str]], accepted_rows: list[dict[str, str]]) -> None:
+    """Attach lateral-dynamics metrics from accepted runs to paired rows.
+
+    The added columns support HE3 by comparing visual dispersion, command count,
+    and maximum horizontal command intensity between matched T0/T1 runs. These
+    metrics describe simulated approach dynamics and should not be interpreted
+    as a universal controller-validity measure.
+    """
     metrics_by_run: dict[str, dict[str, float]] = {}
     for row in accepted_rows:
         run_id = row.get("run_id", "")
@@ -381,6 +411,12 @@ def add_lateral_dynamics_metrics(pairwise_rows: list[dict[str, str]], accepted_r
 
 
 def categorical_test(accepted_rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    """Evaluate binary landing success as a paired categorical outcome.
+
+    In the formal dataset, landing success is saturated in both treatments.
+    This output is retained for traceability but should be interpreted together
+    with terminal error, time, detection availability, and corrective activity.
+    """
     groups: dict[str, dict[str, bool]] = {}
     for row in accepted_rows:
         if row.get("curation_status") != "accepted":

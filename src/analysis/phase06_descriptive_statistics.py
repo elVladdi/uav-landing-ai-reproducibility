@@ -1,4 +1,23 @@
-"""Generate Phase 06 descriptive statistics from Phase 05 formal outputs."""
+"""Generate Phase 06 descriptive statistics from Phase 05 formal outputs.
+
+Inputs:
+    - `outputs/tables/phase05_experiments/phase05_accepted_runs.csv`
+    - `outputs/tables/phase05_experiments/phase05_pairwise_differences.csv`
+
+Outputs:
+    - Treatment and scenario-treatment descriptive CSV tables.
+    - Pairwise-difference summaries.
+    - Success/abort summaries.
+    - A Markdown report for article and thesis interpretation.
+
+Reproducibility role:
+    Recomputes the descriptive evidence used to interpret the precision-time-
+    correction trade-off between T0 and T1.
+
+Scope:
+    Descriptive simulation analysis only. Binary success is saturated in the
+    accepted formal dataset and should not be interpreted as the sole outcome.
+"""
 from __future__ import annotations
 
 import argparse
@@ -109,6 +128,7 @@ def canonical_scenario(value: str) -> str:
 
 
 def descriptive_stats(values: Iterable[float]) -> dict[str, object]:
+    """Return stable descriptive statistics for numeric analytical columns."""
     data = sorted(value for value in values if math.isfinite(value))
     if not data:
         return {
@@ -161,10 +181,12 @@ def truthy(value: object) -> bool:
 
 
 def accepted_formal_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Select rows curated as accepted for the formal Phase 05 comparison."""
     return [row for row in rows if row.get("curation_status") == "accepted"]
 
 
 def run_metric_summary(rows: list[dict[str, str]], scope: str) -> list[dict[str, object]]:
+    """Summarize run-level metrics by treatment or scenario-treatment scope."""
     groups: dict[tuple[str, str, str], list[dict[str, str]]] = defaultdict(list)
     for row in rows:
         scenario_id = row.get("scenario_id", "")
@@ -235,6 +257,7 @@ def success_summary(rows: list[dict[str, str]], scope: str) -> list[dict[str, ob
 
 
 def pairwise_summary(rows: list[dict[str, str]], scope: str) -> list[dict[str, object]]:
+    """Summarize paired T0/T1 differences by global or scenario scope."""
     groups: dict[tuple[str, str], list[dict[str, str]]] = defaultdict(list)
     for row in rows:
         scenario_id = row.get("scenario_id", "")

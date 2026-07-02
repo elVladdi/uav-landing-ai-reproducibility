@@ -1,18 +1,22 @@
-"""Cliente básico para conectar Python con AirSim.
+"""Basic AirSim connection helper for the simulated UAV workflow.
 
-Uso desde la raíz del proyecto:
+Usage from the repository root:
     python src/connection/airsim_client.py
 
-Requisitos:
-    1. Abrir Blocks.exe o AirSimNH.exe antes de ejecutar este script.
-    2. Tener settings.json en modo Multirotor con VehicleName = Drone1.
+Requirements:
+    1. Open Blocks.exe or AirSimNH.exe before running this script.
+    2. Use AirSim settings configured for Multirotor mode and vehicle `Drone1`.
+
+Scope:
+    Diagnostic/helper module only. A successful connection confirms simulator
+    availability, not statistical evidence or real-flight validity.
 """
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
-# Permite importar src/utils/constants.py aunque se ejecute este archivo directamente.
+# Allow direct execution from the repository root while preserving package imports.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -23,21 +27,21 @@ from src.utils.constants import VEHICLE_NAME
 
 
 def connect_multirotor(vehicle_name: str = VEHICLE_NAME) -> airsim.MultirotorClient:
-    """Crea y verifica una conexión con AirSim.
+    """Create and verify an AirSim multirotor connection.
 
     Args:
-        vehicle_name: Nombre del vehículo definido en settings.json.
+        vehicle_name: Vehicle name defined in AirSim settings.
 
     Returns:
-        Cliente AirSim listo para usar.
+        AirSim client ready for simulator commands.
 
     Raises:
-        RuntimeError: Si no se puede confirmar la conexión.
+        RuntimeError: If the simulator or the configured vehicle is unavailable.
     """
     client = airsim.MultirotorClient()
     try:
         client.confirmConnection()
-        # Esta llamada verifica que el vehículo exista en modo multirrotor.
+        # This call verifies that the named multirotor exists in the scene.
         client.getMultirotorState(vehicle_name=vehicle_name)
     except Exception as exc:
         raise RuntimeError(

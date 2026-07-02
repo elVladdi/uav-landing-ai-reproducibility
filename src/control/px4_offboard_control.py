@@ -1,4 +1,11 @@
-"""PX4/MAVSDK helpers for Phase 04 Offboard control."""
+"""PX4/MAVSDK helpers for simulated Offboard control.
+
+These helpers were used for Phase 04 pilot validation and remain as supporting
+software in the reproducibility package. Formal Phase 05 direct-MAVLink scripts
+use similar PX4 Offboard assumptions: local position must be healthy, setpoints
+must be primed before Offboard starts, and velocity commands are simulation
+setpoints rather than real-flight commands.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -22,6 +29,7 @@ from src.control.visual_servo_controller import BodyVelocityCommand
 
 @dataclass(frozen=True)
 class Px4TelemetrySnapshot:
+    """Minimal PX4 telemetry snapshot used for Offboard readiness and logging."""
     timestamp: str
     armed: bool | None
     flight_mode: str
@@ -37,6 +45,7 @@ class Px4TelemetrySnapshot:
 
     @property
     def altitude_m(self) -> float | None:
+        """Return positive-up altitude derived from PX4 local NED down position."""
         if self.down_m is None:
             return None
         return max(0.0, -float(self.down_m))
@@ -65,6 +74,7 @@ class Px4OffboardClient:
         return cls(drone, config)
 
     async def telemetry_snapshot(self) -> Px4TelemetrySnapshot:
+        """Read one bounded-time telemetry snapshot from MAVSDK streams."""
         timeout = self.config.px4.telemetry_timeout_seconds
         health = await _first_or_none(self.drone.telemetry.health(), timeout)
         armed = await _first_or_none(self.drone.telemetry.armed(), timeout)
@@ -93,6 +103,7 @@ class Px4OffboardClient:
         )
 
     async def wait_until_ready(self) -> Px4TelemetrySnapshot:
+        """Require local-position readiness before starting Offboard control."""
         snapshot = await self.telemetry_snapshot()
         if (
             self.config.px4.require_local_position
@@ -189,6 +200,7 @@ class Px4OffboardClient:
             await asyncio.sleep(period)
 
     async def set_body_velocity(self, command: BodyVelocityCommand) -> None:
+        """Send one body-frame velocity setpoint to PX4 Offboard mode."""
         await self.drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(
                 command.forward_m_s,

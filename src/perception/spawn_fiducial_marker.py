@@ -1,4 +1,9 @@
-"""Spawn an ArUco fiducial landing marker in AirSim."""
+"""Generate and spawn the ArUco fiducial landing marker in AirSim.
+
+The formal T1 workflow uses an ArUco `DICT_4X4_50` marker with ID `23`. This
+script creates the texture and optionally places it in the AirSimNH world so the
+bottom camera can observe the marker center for image-space control.
+"""
 from __future__ import annotations
 
 import argparse
@@ -32,6 +37,7 @@ def create_fiducial_texture(
     texture_size_px: int = 2048,
     marker_size_ratio: float = 0.72,
 ) -> Path:
+    """Create the marker texture image used by AirSim object material assignment."""
     texture_dir = FIGURES_DIR / "phase04_control" / "assets"
     texture_dir.mkdir(parents=True, exist_ok=True)
     texture_path = texture_dir / f"aruco_{dictionary_name.lower()}_id{marker_id}.png"
@@ -71,6 +77,7 @@ def spawn_fiducial_marker(
     marker_size_ratio: float = 0.72,
     generate_only: bool = False,
 ) -> str:
+    """Spawn or generate the configured ArUco marker for a simulated run."""
     texture_path = create_fiducial_texture(
         dictionary_name=dictionary_name,
         marker_id=marker_id,

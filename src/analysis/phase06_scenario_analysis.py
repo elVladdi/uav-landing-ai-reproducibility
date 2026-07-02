@@ -1,4 +1,24 @@
-"""Generate Phase 06 scenario-level analysis from paired Phase 05 outputs."""
+"""Generate Phase 06 scenario-level analysis from paired Phase 05 outputs.
+
+Inputs:
+    - `outputs/tables/phase05_experiments/phase05_pairwise_differences.csv`
+    - `outputs/tables/phase05_experiments/phase05_accepted_runs.csv`
+
+Outputs:
+    - `phase06_scenario_analysis.csv`
+    - `phase06_scenario_factor_summary.csv`
+    - `phase06_scenario_rankings.csv`
+    - `phase06_scenario_analysis.md`
+
+Reproducibility role:
+    Recomputes scenario-level and factor-level summaries for the eight formal
+    AirSimNH-PX4 SITL scenarios.
+
+Scope:
+    Scenario and factor summaries are descriptive. They support interpretation
+    of the controlled experiment but do not imply universal performance across
+    other vehicles, cameras, markers, weather, lighting, or real-flight setups.
+"""
 from __future__ import annotations
 
 import argparse
@@ -115,6 +135,7 @@ def mean(values: Iterable[float]) -> object:
 def scenario_summary(
     pairwise_rows: list[dict[str, str]], accepted_rows: list[dict[str, str]]
 ) -> list[dict[str, object]]:
+    """Aggregate paired outcomes for each formal scenario."""
     groups: dict[str, list[dict[str, str]]] = defaultdict(list)
     for row in pairwise_rows:
         groups[row.get("scenario_id", "")].append(row)
@@ -160,6 +181,7 @@ def mean_values(rows: list[dict[str, str]], field: str) -> float:
 
 
 def factor_summary(summary_rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Summarize scenario differences by design factors descriptively."""
     output: list[dict[str, object]] = []
     for factor, field in [
         ("height_m", "height_m"),

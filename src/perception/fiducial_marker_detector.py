@@ -1,8 +1,13 @@
-"""Fiducial marker detector for Phase 04.
+"""ArUco fiducial marker detector for the formal visual workflow.
 
 The first supported fiducial family is ArUco. The detector returns the same
 DetectionResult shape used by the HSV detector so the visual-servo controller can
 consume either perception backend without changing the control logic.
+
+Reproducibility role:
+    Provides the perception backend used by the formal T1 treatment: ArUco
+    `DICT_4X4_50`, marker ID `23`, observed by the AirSimNH bottom camera. The
+    controller consumes image-center displacement, not marker pose estimation.
 """
 from __future__ import annotations
 
@@ -23,6 +28,7 @@ DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "perception_config.json"
 
 @dataclass(frozen=True)
 class FiducialDetectorConfig:
+    """Configuration for the target ArUco dictionary, ID, and thresholds."""
     method: str = "aruco_fiducial"
     family: str = "aruco"
     dictionary_name: str = "DICT_4X4_50"
@@ -74,7 +80,7 @@ class FiducialDetectorConfig:
 
 
 class ArucoFiducialDetector:
-    """Detects an ArUco marker and reports its center in image coordinates."""
+    """Detect an ArUco marker and report its center in image coordinates."""
 
     def __init__(self, config: FiducialDetectorConfig | None = None) -> None:
         self.config = config or FiducialDetectorConfig.from_json()
@@ -83,6 +89,12 @@ class ArucoFiducialDetector:
         self._parameters = _create_detector_parameters(self._aruco, self.config.corner_refinement)
 
     def detect(self, image_bgr: np.ndarray) -> DetectionResult:
+        """Detect the configured ArUco marker in one BGR frame.
+
+        Returned `error_x_norm` and `error_y_norm` are normalized image-center
+        offsets used by T1 visual correction. No 6-DoF pose or physical
+        touchdown estimate is inferred here.
+        """
         if image_bgr is None or image_bgr.size == 0:
             raise ValueError("Input image is empty.")
 
@@ -181,6 +193,7 @@ class ArucoFiducialDetector:
         )
 
     def annotate(self, image_bgr: np.ndarray, result: DetectionResult) -> np.ndarray:
+        """Render diagnostic overlays for detected or missing ArUco markers."""
         annotated = image_bgr.copy()
         height, width = annotated.shape[:2]
         image_center = (int(width / 2), int(height / 2))

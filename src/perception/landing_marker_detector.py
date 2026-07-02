@@ -1,8 +1,13 @@
-"""Landing marker detector for Phase 03.
+"""HSV landing-marker detector used for early perception validation.
 
 The detector is intentionally independent from AirSim. It receives an OpenCV BGR
 image, segments a configurable HSV range, selects the strongest contour, and
 returns the marker position relative to the image center.
+
+Reproducibility role:
+    Documents the color-contour perception baseline validated before the formal
+    ArUco workflow. The formal T1 treatment uses the fiducial ArUco detector
+    unless configuration explicitly selects another backend.
 """
 from __future__ import annotations
 
@@ -22,6 +27,7 @@ DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "perception_config.json"
 
 @dataclass(frozen=True)
 class DetectorConfig:
+    """Configuration for HSV color-contour segmentation thresholds."""
     method: str = "hsv_color_contour"
     hsv_lower: tuple[int, int, int] = (0, 80, 80)
     hsv_upper: tuple[int, int, int] = (15, 255, 255)
@@ -88,6 +94,13 @@ class DetectorConfig:
 
 @dataclass(frozen=True)
 class DetectionResult:
+    """Per-frame marker detection record consumed by logging and control.
+
+    `center_x` and `center_y` are pixel coordinates of the selected marker
+    center. `error_x_norm` and `error_y_norm` are normalized center offsets from
+    the image center and are the quantities used by the visual controller. The
+    formal workflow does not use this object as a 6-DoF pose estimate.
+    """
     detected: bool
     method: str
     image_width: int
@@ -119,6 +132,7 @@ class LandingMarkerDetector:
         self.config = config or DetectorConfig.from_json()
 
     def detect(self, image_bgr: np.ndarray) -> DetectionResult:
+        """Detect the strongest configured HSV marker in one BGR image."""
         if image_bgr is None or image_bgr.size == 0:
             raise ValueError("Input image is empty.")
 
@@ -216,6 +230,7 @@ class LandingMarkerDetector:
         )
 
     def annotate(self, image_bgr: np.ndarray, result: DetectionResult) -> np.ndarray:
+        """Overlay image-center, marker-center, and bounding-box diagnostics."""
         annotated = image_bgr.copy()
         height, width = annotated.shape[:2]
         image_center = (int(width / 2), int(height / 2))

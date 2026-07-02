@@ -1,4 +1,10 @@
-"""Generate the Phase 05 formal execution plan and command blocks."""
+"""Generate the Phase 05 formal execution plan and command blocks.
+
+The plan enumerates formal scenarios, repetitions, treatments, offsets, yaw,
+initial height, marker object names, and treatment-pair identifiers. Treatment
+order alternates by repetition to reduce systematic ordering bias while keeping
+matched T0/T1 pairs traceable through `treatment_pair_id`.
+"""
 from __future__ import annotations
 
 import argparse
@@ -30,6 +36,7 @@ PLAN_FIELDS = [
 
 
 def build_run_plan(config: dict[str, Any]) -> list[dict[str, object]]:
+    """Build the complete ordered list of formal Phase 05 run specifications."""
     repetitions = int(config.get("formal_design", {}).get("repetitions_per_treatment", 10))
     rows: list[dict[str, object]] = []
     run_index = 1
@@ -61,6 +68,7 @@ def build_run_plan(config: dict[str, Any]) -> list[dict[str, object]]:
 
 
 def write_plan_csv(rows: list[dict[str, object]], output_path: Path) -> Path:
+    """Write the run plan used for experimental traceability."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=PLAN_FIELDS)
@@ -76,6 +84,7 @@ def write_commands_markdown(
     start_index: int,
     limit: int | None,
 ) -> Path:
+    """Write operator command blocks for reproducing formal SITL runs."""
     selected = [
         row
         for row in rows
@@ -99,6 +108,7 @@ def write_commands_markdown(
 
 
 def _commands_for_row(row: dict[str, object], config: dict[str, Any]) -> list[str]:
+    """Render the setup, marker, treatment, cleanup, and analysis commands."""
     frozen = config.get("frozen_t1", {})
     execution = config.get("formal_execution", {})
     yaw_setup = execution.get("yaw_setup", {})

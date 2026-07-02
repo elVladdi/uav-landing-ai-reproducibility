@@ -1,3 +1,9 @@
+"""Minimal AirSim bottom-camera capture diagnostic.
+
+This script writes one `bottom_center` image to `outputs/` for local camera
+configuration checks. It is not used as formal Phase 05 evidence.
+"""
+
 import airsim
 import cv2
 import numpy as np

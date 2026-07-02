@@ -1,4 +1,10 @@
-"""CSV logging helpers for Phase 04 control experiments."""
+"""CSV logging helpers for simulated control experiments.
+
+The Phase 04 schema captures per-sample perception, command, telemetry, AirSim
+state, latency, and status fields. Phase 05 extends this schema with formal
+design metadata so raw logs can be summarized into reproducible analytical
+tables.
+"""
 from __future__ import annotations
 
 import csv
@@ -59,10 +65,12 @@ PHASE04_FIELDNAMES = [
 
 
 def build_run_id(prefix: str) -> str:
+    """Create a timestamped run identifier for traceable CSV outputs."""
     return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid4().hex[:8]}"
 
 
 class Phase04CsvLogger:
+    """CSV writer for pilot control-loop fields used before formal Phase 05."""
     def __init__(self, output_path: Path) -> None:
         self.output_path = output_path
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -75,6 +83,7 @@ class Phase04CsvLogger:
         self._writer.writeheader()
 
     def write(self, row: dict[str, Any]) -> None:
+        """Write one normalized row, preserving empty fields for schema stability."""
         normalized = {field: "" for field in PHASE04_FIELDNAMES}
         normalized.update(row)
         self._writer.writerow(normalized)
@@ -91,6 +100,7 @@ class Phase04CsvLogger:
 
 
 def dataclass_dict(value: Any) -> dict[str, Any]:
+    """Convert telemetry, command, or detection dataclasses to loggable fields."""
     if value is None:
         return {}
     if is_dataclass(value):

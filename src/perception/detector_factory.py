@@ -1,4 +1,10 @@
-"""Detector factory for perception backends used by control scripts."""
+"""Build perception backends used by control and validation scripts.
+
+The HSV detector supports early color-marker validation, while the ArUco
+fiducial detector is the relevant backend for the formal T1 workflow. Both
+return the same `DetectionResult` schema so logging and visual control can
+consume center-error fields consistently.
+"""
 from __future__ import annotations
 
 import json
@@ -20,6 +26,7 @@ from src.perception.landing_marker_detector import (
 
 
 class MarkerDetector(Protocol):
+    """Protocol shared by HSV and ArUco marker detectors."""
     def detect(self, image_bgr: np.ndarray) -> DetectionResult:
         ...
 
@@ -32,6 +39,7 @@ ARUCO_DETECTOR_NAMES = {"aruco", "aruco_fiducial", "fiducial"}
 
 
 def active_detector_name(config_path: Path = DEFAULT_CONFIG_PATH) -> str:
+    """Read the configured active detector name from the perception snapshot."""
     with config_path.open("r", encoding="utf-8") as file:
         payload = json.load(file)
     return str(payload.get("active_detector", "hsv_color_contour"))
@@ -42,6 +50,7 @@ def build_marker_detector(
     detector_name: str | None = None,
     config_path: Path = DEFAULT_CONFIG_PATH,
 ) -> MarkerDetector:
+    """Construct the requested detector for the AirSimNH environment."""
     name = (detector_name or active_detector_name(config_path)).strip().lower()
     if name in HSV_DETECTOR_NAMES:
         return LandingMarkerDetector(

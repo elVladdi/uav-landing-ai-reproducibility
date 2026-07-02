@@ -1,4 +1,27 @@
-"""Generate Phase 05 formal tables from the curated run summary."""
+"""Generate Phase 05 formal analytical tables from the curated run summary.
+
+Inputs:
+    - `data/curated/phase05/phase05_run_summary.csv` or the configured Phase 05
+      run-summary path.
+    - `configs/phase05_experiment_config.json` for formal scenarios and
+      expected repetitions.
+
+Outputs:
+    - `phase05_accepted_runs.csv`
+    - `phase05_scenario_treatment_summary.csv`
+    - `phase05_pairwise_differences.csv`
+    - `phase05_completion_check.csv`
+    - `phase05_formal_report.md`
+
+Reproducibility role:
+    Freezes the accepted T0/T1 formal dataset and the paired comparison table
+    consumed by Phase 06 descriptive, hypothesis-test, scenario, and incident
+    analyses.
+
+Scope:
+    These tables summarize accepted simulation runs only. They do not establish
+    real-flight validity, physical touchdown, or sim-to-real transfer.
+"""
 from __future__ import annotations
 
 import argparse
@@ -57,6 +80,7 @@ PAIRWISE_FIELDS = [
 
 
 def read_summary(path: Path) -> list[dict[str, str]]:
+    """Read the curated run-level summary used as the Phase 05 source table."""
     if not path.exists():
         raise FileNotFoundError(f"Summary not found: {path}")
     with path.open("r", encoding="utf-8", newline="") as file:
@@ -64,6 +88,7 @@ def read_summary(path: Path) -> list[dict[str, str]]:
 
 
 def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> Path:
+    """Write a deterministic CSV output with an explicit schema."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames, extrasaction="ignore")
@@ -73,6 +98,7 @@ def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) 
 
 
 def accepted_rows(rows: list[dict[str, str]], scenario_ids: set[str] | None = None) -> list[dict[str, str]]:
+    """Return runs accepted for formal analysis, optionally restricted to scenarios."""
     accepted = [row for row in rows if row.get("curation_status") == "accepted"]
     if scenario_ids is None:
         return accepted
@@ -80,6 +106,11 @@ def accepted_rows(rows: list[dict[str, str]], scenario_ids: set[str] | None = No
 
 
 def scenario_treatment_summary(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    """Aggregate accepted runs by scenario and treatment.
+
+    The resulting table is descriptive and should be interpreted within the
+    controlled AirSimNH-PX4 SITL scenarios only.
+    """
     groups: dict[tuple[str, str], list[dict[str, str]]] = defaultdict(list)
     for row in rows:
         groups[(row.get("scenario_id", ""), row.get("treatment", ""))].append(row)
@@ -103,6 +134,7 @@ def scenario_treatment_summary(rows: list[dict[str, str]]) -> list[dict[str, obj
 
 
 def pairwise_differences(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    """Build matched T0/T1 pairwise differences for the formal design."""
     groups: dict[tuple[str, str, str], dict[str, dict[str, str]]] = defaultdict(dict)
     for row in rows:
         key = (
@@ -146,6 +178,7 @@ def pairwise_differences(rows: list[dict[str, str]]) -> list[dict[str, object]]:
 
 
 def completion_rows(rows: list[dict[str, str]], config: dict[str, object]) -> list[dict[str, object]]:
+    """Check expected accepted-run counts for each scenario/treatment cell."""
     repetitions = int(config.get("formal_design", {}).get("repetitions_per_treatment", 10))
     accepted = accepted_rows(rows, _formal_scenario_ids(config))
     counts = Counter((row.get("scenario_id", ""), row.get("treatment", "")) for row in accepted)
@@ -220,6 +253,7 @@ def write_markdown_report(
 
 
 def generate_report(args: argparse.Namespace) -> dict[str, Path]:
+    """Generate all Phase 05 formal tables from the configured summary input."""
     config = load_phase05_config()
     rows = read_summary(args.summary)
     accepted = accepted_rows(rows, _formal_scenario_ids(config))

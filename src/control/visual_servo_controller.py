@@ -1,8 +1,13 @@
-"""Visual servo helper for Phase 04.
+"""Map image-space marker error to bounded body-frame velocity commands.
 
 This module turns the Phase 03 image-space detection error into a conservative
 body-frame velocity command. The sign mapping is configurable because it must be
 confirmed in AirSimNH before closing the loop.
+
+Reproducibility role:
+    Encodes the visual correction layer used by T1. The controller uses marker
+    center displacement in the image (`error_x_norm`, `error_y_norm`), not a
+    6-DoF pose estimate or a physical contact model.
 """
 from __future__ import annotations
 
@@ -15,6 +20,7 @@ from src.perception.landing_marker_detector import DetectionResult
 
 @dataclass(frozen=True)
 class BodyVelocityCommand:
+    """Body-frame velocity setpoint sent to PX4 through Offboard/MAVLink."""
     forward_m_s: float
     right_m_s: float
     down_m_s: float
@@ -40,7 +46,7 @@ class BodyVelocityCommand:
 
 
 class VisualServoController:
-    """Maps normalized image error to saturated body-frame velocity."""
+    """Map normalized image error to saturated body-frame velocity."""
 
     def __init__(
         self,
@@ -55,6 +61,7 @@ class VisualServoController:
         detection: DetectionResult,
         down_m_s: float = 0.0,
     ) -> BodyVelocityCommand:
+        """Convert one detection result into a bounded T1 correction command."""
         if not detection.detected:
             return BodyVelocityCommand.hover(reason="marker_not_detected")
 
@@ -112,8 +119,10 @@ class VisualServoController:
 
 
 def _apply_deadband(value: float, deadband: float) -> float:
+    """Suppress very small normalized image errors before command generation."""
     return 0.0 if abs(value) < abs(deadband) else value
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
+    """Limit setpoints to configured conservative velocity bounds."""
     return max(minimum, min(maximum, value))

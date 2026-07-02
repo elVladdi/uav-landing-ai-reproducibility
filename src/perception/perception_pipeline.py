@@ -1,4 +1,10 @@
-"""Live Phase 03 perception pipeline using AirSim camera frames."""
+"""Live Phase 03 perception pipeline using AirSim camera frames.
+
+This diagnostic pipeline validates marker detection from the AirSim bottom
+camera before closing the control loop. It records raw/annotated images and
+detection JSON for inspection, but these perception diagnostics are not
+statistical evidence for the formal T0/T1 comparison by themselves.
+"""
 from __future__ import annotations
 
 import argparse
@@ -39,6 +45,7 @@ def position_vehicle_for_capture(
     pose_y: float | None = None,
     land_after_capture: bool = False,
 ) -> None:
+    """Place the simulated vehicle for a perception-only capture."""
     if altitude_m <= 0:
         return
 
@@ -82,6 +89,7 @@ def capture_frame_bgr(
     pose_y: float | None = None,
     land_after_capture: bool = False,
 ) -> np.ndarray:
+    """Capture one AirSim frame from the configured camera as BGR."""
     client = connect_multirotor(vehicle_name=VEHICLE_NAME)
     position_vehicle_for_capture(client, altitude_m, pose_mode, pose_x, pose_y, land_after_capture)
     responses = client.simGetImages(
@@ -119,6 +127,7 @@ def run_live_perception(
     land_after_capture: bool = False,
     detector_name: str | None = None,
 ) -> dict[str, object]:
+    """Run one detector pass and persist traceable perception diagnostics."""
     run_id = f"phase03_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid4().hex[:8]}"
     detector = build_marker_detector(environment, detector_name)
     image_bgr = capture_frame_bgr(camera_name, altitude_m, pose_mode, pose_x, pose_y, land_after_capture)

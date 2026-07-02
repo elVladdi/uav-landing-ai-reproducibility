@@ -1,10 +1,19 @@
-"""Phase 05 T0 baseline descent without visual correction.
+"""Run the Phase 05 T0 baseline descent without visual lateral correction.
 
 This script assumes the vehicle is already airborne. It does not arm and does
 not take off. It streams direct MAVLink OFFBOARD velocity setpoints with zero
 forward/right velocity and a fixed positive-down velocity. The bottom-camera
 detector may run passively for metrics, but its output is never used to correct
 the vehicle.
+
+Reproducibility role:
+    Generates T0 formal-run logs for comparison against T1 under matched
+    scenario, repetition, altitude, lateral-offset, and yaw conditions.
+
+Scope:
+    AirSimNH-PX4 SITL simulation only. Final error is calculated from simulator
+    vehicle-marker poses, and the terminal event is a protocol-level simulated
+    transition rather than physical touchdown validation.
 """
 from __future__ import annotations
 
@@ -60,6 +69,12 @@ from src.perception.landing_marker_detector import DetectionResult
 
 
 def run_baseline_descent(args: argparse.Namespace) -> Path | None:
+    """Execute one T0 baseline descent trial and write its Phase 05 CSV log.
+
+    `--confirm-send` is a deliberate safety gate because this routine sends
+    active Offboard/MAVLink setpoints. T0 is allowed to log passive marker
+    detections, but visual error must not influence lateral velocity commands.
+    """
     if not args.confirm_send:
         print("Safety stop: this script sends active MAVLink OFFBOARD setpoints.")
         print("Re-run with --confirm-send only after PX4 takeoff and marker setup.")
@@ -475,6 +490,7 @@ def run_baseline_descent(args: argparse.Namespace) -> Path | None:
 
 
 def is_passively_centered(detection: DetectionResult, tolerance_norm: float) -> bool:
+    """Evaluate passive centering for logging without commanding correction."""
     if not detection.detected:
         return False
     error_x = float(detection.error_x_norm or 0.0)
@@ -500,6 +516,7 @@ def write_row(
     notes: str,
     extra_fields: dict[str, object] | None = None,
 ) -> None:
+    """Write one Phase 05 T0 log row with command, perception, and terminal data."""
     x, y, z, vx, vy, vz = position
     row = {
         "run_id": run_id,

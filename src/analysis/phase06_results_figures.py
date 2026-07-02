@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Generate Results figures for the AirSimNH-PX4 SITL UAV landing manuscript.
+Generate manuscript figures from the reproduced Phase 05 and Phase 06 tables.
 
 Figures generated:
 - Figure 5. Paired terminal landing error by treatment.
 - Figure 6. Temporal and lateral-behavior outcomes.
 - Figure 7. Scenario-level paired treatment differences.
 
-Inputs are read directly from the Phase 05 and Phase 06 CSV outputs.
-Outputs are exported as PNG (300 dpi) and SVG.
+Inputs are read directly from the Phase 05 and Phase 06 CSV outputs. Outputs
+are exported as PNG (300 dpi) and SVG for article or thesis preparation.
+
+Reproducibility role:
+    Produces visual summaries from versioned analytical tables; it does not
+    rerun AirSimNH, PX4 SITL, MAVLink/Offboard control, or perception modules.
+
+Scope:
+    Figures describe the controlled simulation dataset only. They should not be
+    used as evidence of physical touchdown behavior, real-flight deployment, or
+    sim-to-real transfer.
 
 Author: generated for reproducible manuscript figure production.
 """
@@ -71,12 +80,14 @@ def configure_matplotlib() -> None:
 
 
 def require_columns(df: pd.DataFrame, required: Sequence[str], name: str) -> None:
+    """Fail fast when a reproduced table does not match the expected schema."""
     missing = [c for c in required if c not in df.columns]
     if missing:
         raise ValueError(f"{name} is missing required columns: {missing}")
 
 
 def require_len(df: pd.DataFrame, n: int, name: str) -> None:
+    """Assert the expected row count for manuscript figure inputs."""
     if len(df) != n:
         raise ValueError(f"{name} should contain {n} rows, but contains {len(df)} rows.")
 
@@ -90,6 +101,7 @@ def scenario_short_from_id(scenario_id: str) -> str:
 
 
 def add_scenario_short(df: pd.DataFrame) -> pd.DataFrame:
+    """Add ordered S01-S08 scenario labels used for plotting."""
     out = df.copy()
     if "scenario_short" not in out.columns:
         out["scenario_short"] = out["scenario_id"].apply(scenario_short_from_id)
@@ -107,6 +119,7 @@ def p_text(p_value: float) -> str:
 
 
 def test_label(hyp: pd.DataFrame, metric: str) -> str:
+    """Format the reproduced statistical-test label for figure annotation."""
     row = hyp.loc[hyp["metric"].eq(metric)]
     if row.empty:
         return "statistical test unavailable"
@@ -164,6 +177,7 @@ def strip_by_scenario(
 # Data loading and validation.
 # -----------------------------------------------------------------------------
 def load_data(phase05_dir: Path, phase06_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Load and validate all tabular inputs required for result figures."""
     pairwise_path = phase05_dir / "phase05_pairwise_differences.csv"
     accepted_path = phase05_dir / "phase05_accepted_runs.csv"
     scenario_path = phase06_dir / "phase06_scenario_analysis.csv"

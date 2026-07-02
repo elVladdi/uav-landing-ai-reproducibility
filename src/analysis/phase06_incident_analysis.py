@@ -1,4 +1,22 @@
-"""Generate Phase 06 incident and error-source analysis."""
+"""Generate Phase 06 incident and error-source analysis.
+
+Inputs:
+    - `outputs/tables/phase05_experiments/phase05_accepted_runs.csv`
+
+Outputs:
+    - `phase06_incident_summary.csv`
+    - `phase06_incident_extreme_runs.csv`
+    - `phase06_terminal_state_counts.csv`
+    - `phase06_incident_analysis.md`
+
+Reproducibility role:
+    Identifies detection, latency, terminal-state, and command-activity patterns
+    that contextualize the paired T0/T1 results.
+
+Scope:
+    Incident summaries describe accepted simulated runs. They are not a safety
+    case, real-flight validation, or proof of operational robustness.
+"""
 from __future__ import annotations
 
 import argparse
@@ -132,10 +150,12 @@ def maximum(rows: list[dict[str, str]], field: str) -> object:
 
 
 def accepted_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Return rows curated as accepted for incident analysis."""
     return [row for row in rows if row.get("curation_status") == "accepted"]
 
 
 def grouped_summary(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    """Compute incident-related summaries by treatment and scenario-treatment."""
     output: list[dict[str, object]] = []
     group_specs: list[tuple[str, dict[tuple[str, str, str], list[dict[str, str]]]]] = []
 
@@ -210,6 +230,7 @@ def percentile(data: list[float], probability: float) -> float:
 
 
 def extreme_runs(rows: list[dict[str, str]], top_n: int = 10) -> list[dict[str, object]]:
+    """Return highest-risk or boundary-case runs for audit-oriented review."""
     specs = [
         ("highest_final_error", "final_error_m", True),
         ("longest_landing_time", "landing_time_s", True),

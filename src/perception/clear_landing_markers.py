@@ -1,4 +1,10 @@
-"""Remove spawned landing markers from the AirSim scene."""
+"""Remove spawned landing markers from the AirSim scene.
+
+Cleaning markers before and after runs avoids cross-run contamination in the
+formal experiment. Each Phase 05 run spawns a scenario/repetition-specific
+marker object, so stale objects would compromise traceability and perception
+availability metrics.
+"""
 from __future__ import annotations
 
 import argparse
@@ -14,6 +20,7 @@ from src.utils.constants import VEHICLE_NAME
 
 
 def clear_markers(object_regex: str, vehicle_name: str = VEHICLE_NAME) -> list[str]:
+    """Destroy AirSim scene objects matching the marker naming pattern."""
     client = connect_multirotor(vehicle_name=vehicle_name)
     object_names = client.simListSceneObjects(object_regex)
     destroyed: list[str] = []

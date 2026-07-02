@@ -1,4 +1,10 @@
-"""CSV logging helpers for Phase 05 experimental trials."""
+"""CSV logging helpers for Phase 05 formal experimental trials.
+
+Phase 05 logs retain Phase 04 loop fields and add experiment identifiers,
+scenario metadata, pair/repetition traceability, final simulated error,
+landing-success flags, abort reasons, and the configuration snapshot used for
+the run.
+"""
 from __future__ import annotations
 
 import csv
@@ -48,6 +54,7 @@ class Phase05CsvLogger:
         self._writer.writeheader()
 
     def write(self, row: dict[str, Any]) -> None:
+        """Write one normalized Phase 05 row with stable public schema fields."""
         normalized = {field: "" for field in PHASE05_FIELDNAMES}
         normalized.update(row)
         self._writer.writerow(normalized)

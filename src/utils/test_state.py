@@ -1,3 +1,9 @@
+"""Minimal AirSim multirotor-state diagnostic for local simulator setup.
+
+The printed position, orientation, and velocity are useful for checking AirSim
+connectivity, but they are not curated Phase 05 data.
+"""
+
 import airsim
 
 client = airsim.MultirotorClient()

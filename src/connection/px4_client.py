@@ -1,10 +1,12 @@
-"""Cliente basico MAVSDK para conectar Python con PX4.
+"""Basic MAVSDK client for checking PX4 SITL connectivity.
 
-Uso desde la raiz del proyecto:
+Usage from the repository root:
     python src/connection/px4_client.py
 
-Este modulo no reemplaza el cliente de AirSim. Sirve para validar que PX4 esta
-disponible y que el agente Python puede leer telemetria del autopiloto.
+This module does not replace the AirSim client. It validates that PX4 is
+available through the configured MAVLink endpoint and that Python can read
+autopilot telemetry. It is diagnostic support, not experimental evidence by
+itself.
 """
 from __future__ import annotations
 
@@ -24,13 +26,14 @@ from mavsdk import System
 
 @dataclass(frozen=True)
 class Px4ConnectionSettings:
-    """Configuracion de conexion MAVSDK/PX4."""
+    """MAVSDK/PX4 connection settings loaded from the local environment."""
 
     system_address: str = "udpin://0.0.0.0:14601"
     timeout_seconds: float = 30.0
 
     @classmethod
     def from_environment(cls) -> "Px4ConnectionSettings":
+        """Load PX4 connection settings from the local `.env` file."""
         load_dotenv(PROJECT_ROOT / "configs" / "px4_airsim.env")
         return cls(
             system_address=os.getenv("PX4_SYSTEM_ADDRESS", cls.system_address),
@@ -41,7 +44,7 @@ class Px4ConnectionSettings:
 
 
 async def connect_px4(settings: Px4ConnectionSettings | None = None) -> System:
-    """Crea una conexion MAVSDK y espera hasta detectar PX4."""
+    """Create a MAVSDK connection and wait until PX4 is detected."""
     settings = settings or Px4ConnectionSettings.from_environment()
     drone = System()
 
@@ -58,7 +61,7 @@ async def connect_px4(settings: Px4ConnectionSettings | None = None) -> System:
 
 
 async def print_px4_status() -> None:
-    """Imprime una lectura minima de salud, armado y posicion local."""
+    """Print a minimal PX4 health, armed-state, and local-position snapshot."""
     settings = Px4ConnectionSettings.from_environment()
     drone = await connect_px4(settings)
 

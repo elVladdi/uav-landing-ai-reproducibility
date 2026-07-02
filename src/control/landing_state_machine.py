@@ -1,4 +1,9 @@
-"""State machine for gradual vision-assisted landing trials."""
+"""State machine for gradual simulated vision-assisted landing trials.
+
+The state machine separates alignment, descent, land, and abort decisions for
+the T1-style visual workflow. It uses accepted marker detections and simulated
+PX4 local altitude; it does not validate physical touchdown.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -10,6 +15,7 @@ from src.control.visual_servo_controller import BodyVelocityCommand
 
 
 class LandingPhase(str, Enum):
+    """Protocol phases for the simulated visual landing sequence."""
     ALIGN = "align"
     DESCEND = "descend"
     LAND = "land"
@@ -18,6 +24,7 @@ class LandingPhase(str, Enum):
 
 @dataclass(frozen=True)
 class LandingDecision:
+    """Decision emitted by one state-machine update cycle."""
     phase: LandingPhase
     command: BodyVelocityCommand
     should_land: bool
@@ -26,7 +33,7 @@ class LandingDecision:
 
 
 class VisionLandingStateMachine:
-    """Conservative state machine: align first, descend only while centered."""
+    """Conservative policy: align first, descend only while centered."""
 
     def __init__(self, config: ControlConfig) -> None:
         self.config = config
@@ -40,6 +47,7 @@ class VisionLandingStateMachine:
         visual_command: BodyVelocityCommand,
         elapsed_seconds: float,
     ) -> LandingDecision:
+        """Advance the landing protocol using telemetry and visual command state."""
         altitude_m = telemetry.altitude_m
 
         if elapsed_seconds > self.config.landing.max_trial_seconds:
@@ -113,6 +121,7 @@ class VisionLandingStateMachine:
         return self._abort("invalid_state")
 
     def _abort(self, reason: str) -> LandingDecision:
+        """Emit a reproducible abort decision with the configured abort action."""
         self.phase = LandingPhase.ABORT
         return LandingDecision(
             phase=self.phase,

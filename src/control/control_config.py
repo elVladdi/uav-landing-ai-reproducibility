@@ -1,4 +1,11 @@
-"""Configuration loader for Phase 04 control experiments."""
+"""Load control, perception, landing, and logging parameters for SITL runs.
+
+The configuration values are used by Phase 04 pilots and Phase 05 formal
+scripts. They describe the AirSimNH vehicle (`Drone1`), bottom camera
+(`bottom_center`), Offboard command limits, visual-servo gains, and logging
+locations. This module only loads configuration; it does not execute MAVLink or
+AirSim commands.
+"""
 from __future__ import annotations
 
 import json
@@ -14,6 +21,7 @@ DEFAULT_CONTROL_CONFIG_PATH = PROJECT_ROOT / "configs" / "control_config.json"
 
 @dataclass(frozen=True)
 class Px4RuntimeConfig:
+    """PX4 connection and telemetry-readiness assumptions for SITL scripts."""
     connection_timeout_seconds: float = 5.0
     telemetry_timeout_seconds: float = 2.0
     require_local_position: bool = True
@@ -21,6 +29,7 @@ class Px4RuntimeConfig:
 
 @dataclass(frozen=True)
 class AirSimRuntimeConfig:
+    """AirSimNH vehicle and camera identifiers used for simulated perception."""
     environment: str = "AirSimNH"
     vehicle_name: str = "Drone1"
     camera_name: str = "bottom_center"
@@ -29,6 +38,7 @@ class AirSimRuntimeConfig:
 
 @dataclass(frozen=True)
 class OffboardConfig:
+    """Conservative Offboard/PX4 velocity and takeoff limits for simulation."""
     control_frequency_hz: float = 5.0
     preflight_setpoint_seconds: float = 1.0
     takeoff_altitude_m: float = 2.0
@@ -49,6 +59,7 @@ class OffboardConfig:
 
 @dataclass(frozen=True)
 class VisualServoConfig:
+    """Image-error gains and acceptance thresholds for the T1 correction layer."""
     gain_forward_mps_per_norm_error: float = 0.25
     gain_right_mps_per_norm_error: float = 0.25
     forward_error_sign: float = -1.0
@@ -61,6 +72,7 @@ class VisualServoConfig:
 
 @dataclass(frozen=True)
 class LandingConfig:
+    """Protocol thresholds for simulated visual descent and landing completion."""
     centered_cycles_required: int = 5
     align_timeout_seconds: float = 20.0
     max_trial_seconds: float = 45.0
@@ -71,6 +83,7 @@ class LandingConfig:
 
 @dataclass(frozen=True)
 class LoggingConfig:
+    """Output locations and run-id prefixes for reproducibility logs."""
     run_id_prefix: str = "phase04"
     logs_dir: Path = PROJECT_ROOT / "data" / "logs" / "phase04_control"
     figures_dir: Path = PROJECT_ROOT / "outputs" / "figures" / "phase04_control"
@@ -79,6 +92,7 @@ class LoggingConfig:
 
 @dataclass(frozen=True)
 class ControlConfig:
+    """Complete immutable control configuration snapshot for a run script."""
     px4: Px4RuntimeConfig
     airsim: AirSimRuntimeConfig
     offboard: OffboardConfig
@@ -89,6 +103,7 @@ class ControlConfig:
 
     @classmethod
     def from_json(cls, config_path: Path = DEFAULT_CONTROL_CONFIG_PATH) -> "ControlConfig":
+        """Load a control configuration from the public JSON snapshot."""
         with config_path.open("r", encoding="utf-8") as file:
             payload = json.load(file)
 

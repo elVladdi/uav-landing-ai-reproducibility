@@ -1,4 +1,22 @@
-"""Build a one-row-per-run Phase 05 metrics table from raw CSV logs."""
+"""Build the Phase 05 run-level metrics table from execution logs.
+
+Inputs:
+    - Raw or summary CSV logs written by the Phase 05 control scripts.
+    - `configs/phase05_experiment_config.json` for formal curation rules.
+
+Outputs:
+    - A one-row-per-run CSV summary used by Phase 05 and Phase 06 analyses.
+
+Reproducibility role:
+    Converts simulator/control/perception logs into a curated analytical table
+    with stable identifiers, scenario metadata, terminal metrics, visual
+    availability metrics, and curation labels.
+
+Scope:
+    Analytical reproduction only. Final error is derived from simulator-side
+    AirSim vehicle-marker poses, and terminal state is a protocol transition,
+    not physical touchdown validation or real-flight evidence.
+"""
 from __future__ import annotations
 
 import argparse
@@ -65,12 +83,20 @@ SUMMARY_FIELDS = [
 ]
 
 def _relative_project_path(path: Path) -> str:
+    """Return a stable project-relative path for traceable CSV provenance."""
     try:
         return path.resolve().relative_to(PROJECT_ROOT).as_posix()
     except ValueError:
         return path.as_posix()
 
 def summarize_file(csv_path: Path) -> dict[str, object]:
+    """Summarize a single Phase 05 execution log into one analytical row.
+
+    The summary preserves treatment, scenario, repetition, pair identifiers,
+    visual-sample counts, command activity, terminal state, and final simulator
+    landing error. T0 logs may include passive perception, but those detections
+    do not imply visual lateral correction in the baseline treatment.
+    """
     with csv_path.open("r", encoding="utf-8", newline="") as file:
         rows = list(csv.DictReader(file))
 
@@ -156,6 +182,7 @@ def summarize_file(csv_path: Path) -> dict[str, object]:
 
 
 def summarize_directory(raw_logs_dir: Path, output_path: Path, curation: dict[str, object] | None = None) -> Path:
+    """Summarize all Phase 05 CSV logs and apply reproducibility curation."""
     files = sorted(raw_logs_dir.glob("phase05_*_*.csv"))
     summaries = [summarize_file(csv_path) for csv_path in files]
     apply_curation(summaries, curation or {})
@@ -168,6 +195,13 @@ def summarize_directory(raw_logs_dir: Path, output_path: Path, curation: dict[st
 
 
 def apply_curation(rows: list[dict[str, object]], curation: dict[str, object]) -> None:
+    """Assign reproducibility-oriented curation labels to run summaries.
+
+    The curation rules exclude diagnostic, aborted, incomplete, superseded, or
+    non-comparable runs before paired T0/T1 analysis. Changing these rules would
+    change the public analytical dataset and therefore requires matching updates
+    to the methodology documentation and article reproducibility statement.
+    """
     rules = curation.get("rules", {}) if isinstance(curation.get("rules", {}), dict) else {}
     superseded = {
         entry.get("run_id"): entry
@@ -193,6 +227,7 @@ def apply_curation(rows: list[dict[str, object]], curation: dict[str, object]) -
 
 
 def _base_curation_status(row: dict[str, object], rules: dict[str, object]) -> tuple[str, str]:
+    """Evaluate one run against the Phase 05 inclusion/exclusion criteria."""
     required_phase = str(rules.get("required_phase", "fase05"))
     valid_treatments = set(rules.get("valid_treatments", ["T0", "T1"]))
     required_metadata = rules.get(

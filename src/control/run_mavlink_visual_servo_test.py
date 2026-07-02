@@ -1,4 +1,4 @@
-"""Active visual-servo correction using direct MAVLink setpoints.
+"""Run active visual-servo correction using direct MAVLink setpoints.
 
 This Phase 04 pilot assumes the vehicle is already airborne. It does not arm or
 take off. By default it only performs lateral visual-servo correction; with
@@ -7,6 +7,16 @@ has remained centered for several cycles. It captures the bottom camera image
 from AirSim, computes the visual correction, converts body-frame forward/right
 velocity to local NED using PX4 yaw, streams velocity setpoints through direct
 MAVLink, and lands by default when finished.
+
+Reproducibility role:
+    Provides the validated control path reused by the formal Phase 05 T1
+    treatment. The routine logs perception, command, telemetry, and terminal
+    fields consumed by the public analytical reproduction package.
+
+Scope:
+    Setpoints are MAVLink/PX4 commands in simulation. The final-error fields are
+    based on AirSim vehicle-marker poses and do not validate physical contact,
+    real-flight behavior, or sim-to-real transfer.
 """
 from __future__ import annotations
 
@@ -65,6 +75,12 @@ VELOCITY_ONLY_TYPE_MASK = (
 
 
 def run_visual_servo_test(args: argparse.Namespace) -> Path | None:
+    """Execute one visual-servo trial and log all analytical run fields.
+
+    `--confirm-send` is an intentional barrier against accidental active
+    command transmission. The routine is used for Phase 04 pilots and, through
+    the T1 wrapper, for formal Phase 05 vision-assisted descents.
+    """
     if not args.confirm_send:
         print("Safety stop: this script sends active MAVLink OFFBOARD setpoints.")
         print("Re-run with --confirm-send only after dry-run signs and hover are validated.")
