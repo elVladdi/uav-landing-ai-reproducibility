@@ -1,87 +1,129 @@
-# UAV Landing AI
+# AirSimNH–PX4 Reproducibility Package for Vision-Assisted UAV Landing Evaluation
 
-Repositorio del proyecto de investigación **UAV Landing AI**, orientado al diseño, integración y evaluación de un agente visual para apoyar el aterrizaje autónomo de un vehículo aéreo no tripulado (UAV) sobre una plataforma señalizada en un entorno controlado de simulación.
+[Spanish version](README.es.md)
 
-El proyecto compara dos tratamientos:
+This repository contains the public reproducibility package for a simulation-based UAV landing study. The study evaluates whether an external vision-assisted Offboard layer changes autonomous landing performance over a marked platform in an AirSimNH–PX4 SITL workflow.
 
-- `T0`: aterrizaje base sin corrección lateral visual inteligente.
-- `T1`: aterrizaje asistido por un agente visual basado en detección ArUco y control lateral mediante MAVLink directo.
+The repository is intended to support analytical reproducibility of the reported results from curated CSV files, configuration snapshots, analysis scripts, derived tables, and verification utilities. It is not presented as a real-flight validation package.
 
-La evidencia experimental se generó en simulación con AirSimNH, PX4 SITL, cámara inferior simulada, Python 3.10 y scripts reproducibles. El alcance corresponde a validación en entorno simulado; no representa todavía una validación en vuelo real.
+## Study overview
 
-## Estado actual
+The experiment compares two matched landing treatments:
 
-El repositorio se encuentra en **cierre analítico de Fase 06**. Las fases técnicas y experimentales previas quedaron cerradas y la comparación formal `T0/T1` ya fue analizada estadísticamente.
+| Treatment | Description | Active visual lateral correction |
+|---|---|---|
+| `T0` | Baseline autonomous descent over the marked platform. ArUco perception may be logged, but visual error is not used for lateral control. | No |
+| `T1` | Vision-assisted descent using an ArUco-marked platform, image-space error, and bounded Offboard lateral corrections sent through MAVLink/PX4. | Yes |
 
-| Fase | Propósito | Estado |
-| --- | --- | --- |
-| Fase 01 | Definición del sistema, alcance, tratamientos y métricas preliminares. | Cerrada |
-| Fase 02 | Configuración y validación del entorno AirSimNH/PX4/Python. | Cerrada |
-| Fase 03 | Validación inicial de percepción visual y evidencia anotada. | Cerrada |
-| Fase 04 | Integración percepción-control con ArUco, MAVLink directo y descenso asistido. | Cerrada |
-| Fase 05 | Ejecución formal de escenarios `T0/T1`, curación de corridas y dataset experimental. | Cerrada |
-| Fase 06 | Auditoría, estadística descriptiva, contraste de hipótesis, análisis por escenario, incidencias, discusión, limitaciones y conclusiones. | Cerrada |
+The formal design uses eight simulated scenarios defined by initial altitude, lateral offset, and yaw. Each scenario contains ten matched `T0/T1` repetitions, producing 160 accepted formal runs and 80 paired comparisons.
 
-## Resultado principal
+## Main findings
 
-La Fase 06 analizó **160 corridas aceptadas**, organizadas como **80 pares completos `T0/T1`** en ocho escenarios (`S01`-`S08`), con diez pares por escenario.
+| Outcome | `T0` | `T1` | Interpretation |
+|---|---:|---:|---|
+| Mean terminal landing error | `0.5831 m` | `0.0206 m` | `T1` substantially reduced terminal error. |
+| Mean landing-loop time | `20.6399 s` | `28.8897 s` | `T1` required a longer controlled landing loop. |
+| Accepted-detection rate | `0.6889` | `0.9978` | `T1` showed higher simulated detection availability. |
+| Protocol-level simulated success | `80/80` | `80/80` | Binary success did not discriminate between treatments. |
 
-Los resultados principales son:
+The result should be interpreted as a precision–time–correction trade-off: the vision-assisted treatment reduced terminal error while increasing landing-loop time and corrective activity. It does not establish global superiority of `T1`, real-flight validity, operational readiness, or sim-to-real transfer.
 
-- `T1` redujo de forma marcada el error final de aterrizaje: media `T0 = 0.5831 m`, media `T1 = 0.0206 m`, con contraste pareado significativo.
-- `T1` incrementó el tiempo de aterrizaje: media `T0 = 20.6399 s`, media `T1 = 28.8897 s`, lo que refleja una estrategia más correctiva y deliberada.
-- La detección visual aceptada fue muy superior en `T1` (`0.9978`) frente a `T0` (`0.6889`), y las pérdidas de detección fueron sustancialmente menores.
-- No se observó diferencia en éxito/fracaso porque ambos tratamientos completaron `80/80` corridas aceptadas.
-- `T1` modificó significativamente la dinámica lateral de aproximación: presentó mayor dispersión visual/lateral, más actividad correctiva y mayor intensidad de comando horizontal que `T0`.
+## What this repository supports
 
-En términos interpretativos, el agente visual mejora de manera clara la precisión final del aterrizaje a cambio de mayor tiempo de ejecución y mayor actividad correctiva durante la aproximación. La mejora se sostiene dentro del marco simulado y bajo los escenarios controlados del experimento.
+| Reproducibility level | Status | Scope |
+|---|---|---|
+| Analytical reproduction | Supported | Rebuild curated tables, Phase 06 statistical outputs, and publication-oriented analysis artifacts from versioned CSV inputs. |
+| Experimental rerun | Documented | Requires a local AirSimNH–PX4 SITL setup, simulator configuration, PX4 environment, and machine-specific runtime settings. |
+| Raw-log audit | Limited | Full raw simulator/control/perception logs, videos, screenshots, temporary diagnostic artifacts, and local virtual environments are not stored in Git. Availability is documented through the manifest. |
 
-## Estructura del repositorio
+## Repository structure
 
 ```text
-uav-landing-ai/
-├─ configs/                         # Configuraciones del entorno y del experimento
-├─ data/                            # Datos ligeros y resúmenes curados
-├─ docs/                            # Documentación metodológica y entregables por fase
-│  ├─ fase01_definicion_del_sistema_delimitacion_del_alcance/
-│  ├─ fase02_entorno_experimental/
-│  ├─ fase03_percepcion_visual/
-│  ├─ fase04_integracion_autopiloto/
-│  ├─ fase05_experimentacion_t0_t1/
-│  └─ fase06_analisis_resultados/
-├─ experiments/                     # Material de ejecución experimental
-├─ outputs/                         # Salidas ligeras versionables
-│  └─ tables/phase06_analysis/      # Tablas finales de análisis de Fase 06
-├─ scripts/                         # Utilidades del proyecto
-├─ src/                             # Código fuente
-│  └─ analysis/                     # Scripts de auditoría y análisis estadístico
-├─ requirements.txt                 # Dependencias Python
-└─ README.md                        # Este documento
+uav-landing-ai-reproducibility/
+├─ .github/workflows/                 # Public repository checks, if enabled
+├─ configs/                            # Experiment, perception, control, and environment templates
+├─ data/                               # Curated data and raw-log manifest references
+├─ docs/                               # Methodology, environment notes, traceability, and article-support documentation
+├─ outputs/                            # Versioned derived outputs and analysis tables
+├─ reproducibility_manifest/           # Reproducibility inventory and availability notes
+├─ scripts/                            # Reproduction and utility scripts
+├─ src/                                # Source code for analysis and verification routines
+│  └─ analysis/                        # Phase 06 audit, descriptive, hypothesis, scenario, and incident analyses
+├─ tests/                              # Verification utilities and lightweight checks
+├─ CITATION.cff                        # Citation metadata
+├─ DATA_AVAILABILITY.md                # Data availability statement
+├─ LICENSE                             # MIT license
+├─ README.md                           # Main English README
+├─ README.es.md                        # Spanish README
+├─ REPRODUCIBILITY.md                  # Reproducibility guide
+├─ SOFTWARE_ENVIRONMENT.md             # Software and runtime environment notes
+└─ requirements.txt                    # Python dependencies
 ```
 
-Los logs crudos, entornos virtuales y salidas pesadas no forman parte del versionado principal. El repositorio conserva los documentos, scripts, tablas ligeras y resúmenes necesarios para auditoría académica y reproducción del análisis.
+## Included artifacts
 
-## Documentación clave
+The public branch includes the lightweight materials required to inspect and reproduce the reported analytical results:
 
-- Índice documental general: [`docs/README.md`](docs/README.md)
-- Trazabilidad de fases y objetivos: [`docs/trazabilidad_fases_objetivos.md`](docs/trazabilidad_fases_objetivos.md)
-- Justificación metodológica de fases: [`docs/justificacion_metodologica_fases.md`](docs/justificacion_metodologica_fases.md)
-- Diseño experimental `T0/T1`: [`docs/fase05_experimentacion_t0_t1/02_diseno_experimental_t0_t1.md`](docs/fase05_experimentacion_t0_t1/02_diseno_experimental_t0_t1.md)
-- Cierre de ejecución formal: [`docs/fase05_experimentacion_t0_t1/13_avance_ejecucion_formal.md`](docs/fase05_experimentacion_t0_t1/13_avance_ejecucion_formal.md)
-- Conclusiones de Fase 06: [`docs/fase06_analisis_resultados/09_conclusiones_fase06.md`](docs/fase06_analisis_resultados/09_conclusiones_fase06.md)
-- Ayuda memoria de Fase 06: [`docs/fase06_analisis_resultados/10_ayuda_memoria_fase06.md`](docs/fase06_analisis_resultados/10_ayuda_memoria_fase06.md)
+- curated run-level CSV files;
+- accepted-run and pairwise-difference tables;
+- scenario-treatment summaries;
+- configuration snapshots and public templates;
+- Phase 06 statistical outputs;
+- analysis scripts;
+- verification utilities;
+- methodological and data-availability documentation.
 
-## Entorno de trabajo
+## Artifacts not stored in Git
 
-Requisitos principales:
+The following materials are intentionally excluded from Git because they are heavy, machine-specific, temporary, or not required for analytical reproduction:
 
-- Windows con PowerShell.
-- Python 3.10.
-- Entorno virtual `.venv`.
-- Dependencias de `requirements.txt`, incluida `scipy` para contrastes estadísticos.
-- AirSimNH y PX4 SITL para reproducir ejecución experimental completa.
+- full raw simulator/control/perception logs;
+- videos, screenshots, and diagnostic captures;
+- local virtual environments;
+- local `.env` files;
+- machine-specific paths and simulator state;
+- temporary diagnostic artifacts.
 
-Instalación recomendada:
+Their expected inventory and availability notes are documented in the repository manifest. If a raw archive is later deposited in Zenodo, Figshare, OSF, or another repository, the DOI and checksum should be added to the manifest and data-availability files.
+
+## Software requirements
+
+### Analytical reproduction
+
+Recommended analytical environment:
+
+- Windows with PowerShell;
+- Python 3.10;
+- virtual environment `.venv`;
+- Python packages listed in `requirements.txt`:
+  - `airsim==1.8.1`
+  - `numpy`
+  - `opencv-contrib-python`
+  - `mavsdk`
+  - `pymavlink`
+  - `python-dotenv`
+  - `scipy`
+  - `pandas`
+  - `matplotlib`
+
+### Full experimental rerun
+
+A full rerun requires additional local infrastructure:
+
+- AirSimNH;
+- PX4 SITL through WSL2;
+- MAVLink direct UDP channel on port `14601`;
+- simulated vehicle name: `Drone1`;
+- downward-facing camera: `bottom_center`;
+- ArUco dictionary: `DICT_4X4_50`;
+- marker ID: `23`;
+- local simulator/autopilot settings derived from the public templates in `configs/`.
+
+Do not commit local `.env` files, machine-specific paths, large generated logs, or virtual environments.
+
+## Installation
+
+From a Windows PowerShell terminal:
 
 ```powershell
 cd "<REPO_ROOT>"
@@ -90,7 +132,7 @@ py -3.10 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Si el entorno virtual ya existe:
+To reuse an existing virtual environment:
 
 ```powershell
 cd "<REPO_ROOT>"
@@ -98,9 +140,21 @@ cd "<REPO_ROOT>"
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-## Reproducción del análisis de Fase 06
+## Reproduce the analytical results
 
-Los scripts de Fase 06 generan las tablas ligeras ubicadas en `outputs/tables/phase06_analysis/`.
+The recommended one-command analytical reproduction is:
+
+```powershell
+.\scripts\reproduce_analysis.ps1
+```
+
+A successful verification should report:
+
+```text
+Checks: 37 | OK: 37 | REVIEW: 0
+```
+
+The same workflow can be executed step by step:
 
 ```powershell
 cd "<REPO_ROOT>"
@@ -111,31 +165,67 @@ cd "<REPO_ROOT>"
 .\.venv\Scripts\python.exe src\analysis\phase06_incident_analysis.py
 ```
 
-Salidas esperadas:
+Expected analytical outputs include:
 
-- Auditoría del dataset experimental.
-- Estadística descriptiva por tratamiento.
-- Contrastes de hipótesis y tamaños de efecto.
-- Análisis por escenario.
-- Análisis de incidencias y fuentes de error.
+- dataset audit summaries;
+- descriptive statistics by treatment;
+- paired hypothesis tests and effect summaries;
+- scenario-level summaries;
+- incident and boundary-case summaries;
+- publication-oriented derived tables.
 
-## Criterios de interpretación
+## Core analytical inputs
 
-El análisis debe leerse con cuatro precauciones:
+The analytical reproduction workflow depends on the curated and derived CSV files versioned in the public branch, including:
 
-- La comparación es válida dentro de los escenarios simulados definidos.
-- La precisión final y la dinámica lateral de aproximación no son métricas equivalentes.
-- La ausencia de diferencia en éxito/fracaso se explica porque el conjunto aceptado contiene corridas exitosas en ambos tratamientos.
-- Los resultados no sustituyen una campaña de validación física; constituyen una base experimental reproducible para la tesis y para trabajo futuro.
+```text
+data/curated/phase05/phase05_run_summary.csv
+data/logs/phase05_experiments/summary/phase05_run_summary.csv
+outputs/tables/phase05_experiments/phase05_accepted_runs.csv
+outputs/tables/phase05_experiments/phase05_pairwise_differences.csv
+outputs/tables/phase05_experiments/phase05_scenario_treatment_summary.csv
+outputs/tables/phase05_experiments/phase05_formal_report.md
+outputs/tables/phase06_analysis/
+```
 
-## Próximo uso académico
+## Interpretation boundaries
 
-Con Fase 06 cerrada, el repositorio queda preparado para alimentar:
+Use the results with the following scope restrictions:
 
-- capítulo de metodología;
-- capítulo de resultados;
-- discusión de hipótesis;
-- limitaciones y trabajo futuro;
-- artículo o informe final del proyecto.
+1. The evidence applies to the controlled AirSimNH–PX4 SITL scenarios `S01`–`S08`.
+2. The comparison applies to the implemented `T0/T1` treatments and accepted formal runs.
+3. The terminal condition is a simulated protocol-level terminal transition, not physical touchdown validation.
+4. The workflow does not validate real flight, physical contact dynamics, outdoor deployment, wind robustness, lighting robustness, other drones, other cameras, unprepared landing zones, or a universal control law.
+5. Binary success was saturated in both treatments; therefore, terminal precision, time, detection availability, and corrective activity must be interpreted jointly.
 
-La siguiente etapa natural ya no es ejecutar más corridas, sino convertir la evidencia consolidada en redacción académica final, tablas publicables y figuras para tesis o artículo.
+## Methodological contribution
+
+The repository supports the study’s central methodological contribution: a paired, traceable, and reproducible workflow for evaluating how an Offboard visual-assistance layer modifies simulated UAV landing performance under matched scenario conditions.
+
+The contribution is not:
+
+- a new fiducial marker;
+- a new PX4 controller;
+- a universal landing law;
+- a real-flight validation package;
+- a full sim-to-real benchmark.
+
+## Citation
+
+If you use this repository, cite the reproducibility package and the associated manuscript when available.
+
+```text
+Molleapasa Gutierrez, V. UAV Landing AI Reproducibility Package. Public reproducibility package for an AirSimNH–PX4 SITL experiment comparing baseline autonomous descent and ArUco-based Offboard visual assistance for simulated UAV landing evaluation.
+```
+
+For machine-readable citation metadata, see `CITATION.cff`.
+
+## License
+
+This repository is released under the MIT License. See `LICENSE`.
+
+## Contact
+
+Author: Vladimir Molleapasa Gutierrez  
+Research topic: reproducible AirSimNH–PX4 workflow for vision-assisted autonomous UAV landing evaluation  
+Repository: `https://github.com/elVladdi/uav-landing-ai-reproducibility`
