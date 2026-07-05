@@ -25,6 +25,7 @@ Checks: 37 | OK: 37 | REVIEW: 0
 ## Required analytical inputs
 
 ```text
+outputs/tables/phase05_formal_run_plan.csv
 data/curated/phase05/phase05_run_summary.csv
 data/logs/phase05_experiments/summary/phase05_run_summary.csv
 outputs/tables/phase05_experiments/phase05_accepted_runs.csv

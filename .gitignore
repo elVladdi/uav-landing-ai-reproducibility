@@ -84,6 +84,7 @@ outputs/tables/*
 !outputs/tables/
 !outputs/tables/README.md
 !outputs/tables/.gitkeep
+!outputs/tables/phase05_formal_run_plan.csv
 !outputs/tables/phase05_experiments/
 outputs/tables/phase05_experiments/*
 !outputs/tables/phase05_experiments/phase05_accepted_runs.csv

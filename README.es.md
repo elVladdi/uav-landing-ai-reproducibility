@@ -211,6 +211,7 @@ SciPy available: True
 
 | Insumo o fuente | Script | Salidas principales |
 |---|---|---|
+| configs/phase05_experiment_config.json | src/experiments/phase05_generate_run_plan.py | Plan formal de corridas de Fase 05: outputs/tables/phase05_formal_run_plan.csv, con run_index, escenario, tratamiento, par y repeticion. |
 | `data/curated/phase05/phase05_run_summary.csv` | `src/analysis/phase05_metrics.py` | Tablas de corridas aceptadas, diferencias pareadas y resumen por escenario-tratamiento de Fase 05. |
 | `outputs/tables/phase05_experiments/phase05_accepted_runs.csv` | `src/analysis/phase06_dataset_audit.py` | Auditoría del dataset en CSV y Markdown con 37 verificaciones de consistencia. |
 | `outputs/tables/phase05_experiments/phase05_accepted_runs.csv` | `src/analysis/phase06_descriptive_statistics.py` | Resúmenes por tratamiento, escenario, pares y éxito. |
@@ -224,6 +225,7 @@ SciPy available: True
 El flujo de reproducción analítica depende de los archivos CSV curados y derivados versionados en la rama pública, incluyendo:
 
 ```text
+outputs/tables/phase05_formal_run_plan.csv
 data/curated/phase05/phase05_run_summary.csv
 data/logs/phase05_experiments/summary/phase05_run_summary.csv
 outputs/tables/phase05_experiments/phase05_accepted_runs.csv

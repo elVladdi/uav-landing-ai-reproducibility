@@ -211,6 +211,7 @@ SciPy available: True
 
 | Input or source | Script | Main outputs |
 |---|---|---|
+| configs/phase05_experiment_config.json | src/experiments/phase05_generate_run_plan.py | Formal Phase 05 run plan: outputs/tables/phase05_formal_run_plan.csv, with run_index, scenario, treatment, pair, and repetition schedule. |
 | `data/curated/phase05/phase05_run_summary.csv` | `src/analysis/phase05_metrics.py` | Accepted-run, pairwise-difference, and scenario-treatment Phase 05 tables. |
 | `outputs/tables/phase05_experiments/phase05_accepted_runs.csv` | `src/analysis/phase06_dataset_audit.py` | Dataset audit CSV and Markdown report with 37 consistency checks. |
 | `outputs/tables/phase05_experiments/phase05_accepted_runs.csv` | `src/analysis/phase06_descriptive_statistics.py` | Treatment, scenario, pairwise, and success summaries. |
@@ -224,6 +225,7 @@ SciPy available: True
 The analytical reproduction workflow depends on the curated and derived CSV files versioned in the public branch, including:
 
 ```text
+outputs/tables/phase05_formal_run_plan.csv
 data/curated/phase05/phase05_run_summary.csv
 data/logs/phase05_experiments/summary/phase05_run_summary.csv
 outputs/tables/phase05_experiments/phase05_accepted_runs.csv

@@ -9,6 +9,7 @@ Curated datasets and derived CSV files included in this repository are released 
 - `data/curated/phase05/phase05_run_summary.csv`
 - `data/logs/phase05_experiments/summary/phase05_run_summary.csv`
 - `outputs/tables/phase05_experiments/`
+- `outputs/tables/phase05_formal_run_plan.csv`
 - `outputs/tables/phase06_analysis/`
 - `configs/phase05_experiment_config.json`
 
