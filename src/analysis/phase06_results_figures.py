@@ -51,27 +51,42 @@ DEFAULT_PHASE06_DIR = PROJECT_ROOT / "outputs" / "tables" / "phase06_analysis"
 # Plot style helpers.
 # -----------------------------------------------------------------------------
 SCENARIO_ORDER = [f"S{i:02d}" for i in range(1, 9)]
-PANEL_LABEL_KW = dict(fontsize=10, fontweight="bold", va="top", ha="left")
+PANEL_LABEL_KW = dict(fontsize=10.8, fontweight="bold", va="top", ha="left")
+ANNOTATION_KW = dict(fontsize=9.5, va="top", ha="left")
+ANNOTATION_BOX_KW = dict(boxstyle="round,pad=0.18", facecolor="white", edgecolor="none", alpha=0.82)
+
+# Color-blind-friendly publication palette with restrained accents.
+T0_COLOR = "#4C78A8"  # muted blue
+T1_COLOR = "#ECA06A"  # muted orange
+PAIR_LINE_COLOR = "0.62"
+MEAN_COLOR = "0.05"
+DIFFERENCE_COLOR = "#2A9D8F"  # teal accent for paired differences
+BAR_COLORS = ["#6A9FB5", "#8FA37A", "#C08A5A"]
+BAR_EDGES = ["#2F5968", "#536445", "#744B2A"]
+ZERO_LINE_COLOR = "0.35"
 
 
 def configure_matplotlib() -> None:
     """Configure a restrained manuscript-oriented matplotlib style."""
     plt.rcParams.update(
         {
-            "figure.dpi": 150,
-            "savefig.dpi": 300,
+            "figure.dpi": 220,
+            "savefig.dpi": 600,
             "font.family": "DejaVu Sans",
-            "font.size": 8.5,
-            "axes.labelsize": 8.5,
-            "axes.titlesize": 9.0,
-            "xtick.labelsize": 8.0,
-            "ytick.labelsize": 8.0,
-            "legend.fontsize": 8.0,
+            "font.size": 10.5,
+            "axes.labelsize": 10.5,
+            "axes.titlesize": 11.0,
+            "xtick.labelsize": 9.5,
+            "ytick.labelsize": 9.5,
+            "legend.fontsize": 9.5,
             "axes.linewidth": 0.8,
+            "axes.facecolor": "white",
+            "figure.facecolor": "white",
+            "savefig.facecolor": "white",
             "axes.spines.top": False,
             "axes.spines.right": False,
-            "grid.color": "0.88",
-            "grid.linewidth": 0.6,
+            "grid.color": "0.86",
+            "grid.linewidth": 0.65,
             "svg.fonttype": "none",
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
@@ -131,18 +146,21 @@ def test_label(hyp: pd.DataFrame, metric: str) -> str:
 
 
 def panel_label(ax: plt.Axes, label: str) -> None:
-    ax.text(0.0, 1.03, label, transform=ax.transAxes, **PANEL_LABEL_KW)
+    ax.text(-0.015, 1.035, label, transform=ax.transAxes, clip_on=False, **PANEL_LABEL_KW)
 
 
 def save_figure(fig: plt.Figure, output_dir: Path, stem: str) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     png_path = output_dir / f"{stem}.png"
     svg_path = output_dir / f"{stem}.svg"
-    fig.savefig(png_path, bbox_inches="tight", dpi=300)
+    pdf_path = output_dir / f"{stem}.pdf"
+    fig.savefig(png_path, bbox_inches="tight", dpi=600)
     fig.savefig(svg_path, bbox_inches="tight")
+    fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {png_path}")
     print(f"Saved: {svg_path}")
+    print(f"Saved: {pdf_path}")
 
 
 def strip_by_scenario(
@@ -151,8 +169,8 @@ def strip_by_scenario(
     value_col: str,
     xlabel: str,
     jitter_seed: int = 123,
-    point_size: float = 15,
-    color: str = "0.20",
+    point_size: float = 22,
+    color: str = DIFFERENCE_COLOR,
 ) -> None:
     """Horizontal strip plot grouped by scenario using matplotlib only."""
     rng = np.random.default_rng(jitter_seed)
@@ -161,10 +179,10 @@ def strip_by_scenario(
         if len(vals) == 0:
             continue
         y = idx + rng.uniform(-0.18, 0.18, size=len(vals))
-        ax.scatter(vals, y, s=point_size, alpha=0.72, color=color, edgecolors="none")
+        ax.scatter(vals, y, s=point_size, alpha=0.78, color=color, edgecolors="white", linewidths=0.25)
         # Add median marker for scenario-level visual reference.
-        ax.plot(np.median(vals), idx, marker="|", color="black", markersize=11, markeredgewidth=1.5)
-    ax.axvline(0, color="0.45", linewidth=0.9, linestyle="--")
+        ax.plot(np.median(vals), idx, marker="|", color=MEAN_COLOR, markersize=13, markeredgewidth=1.7)
+    ax.axvline(0, color=ZERO_LINE_COLOR, linewidth=0.9, linestyle="--")
     ax.set_yticks(range(len(SCENARIO_ORDER)))
     ax.set_yticklabels(SCENARIO_ORDER)
     ax.set_xlabel(xlabel)
@@ -329,25 +347,38 @@ def accepted_wide(accepted: pd.DataFrame) -> pd.DataFrame:
 # -----------------------------------------------------------------------------
 def make_figure5(pairwise: pd.DataFrame, hypothesis: pd.DataFrame, output_dir: Path) -> None:
     """Figure 5. Paired terminal landing error by treatment."""
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.35), gridspec_kw={"width_ratios": [0.95, 1.25]})
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(8.0, 4.0),
+        gridspec_kw={"width_ratios": [0.95, 1.3]},
+        constrained_layout=True,
+    )
     ax = axes[0]
 
     # Panel (a): paired plot T0 vs T1.
     for _, r in pairwise.iterrows():
-        ax.plot([0, 1], [r["final_error_m_t0"], r["final_error_m_t1"]], color="0.55", alpha=0.36, linewidth=0.65)
-    ax.scatter(np.zeros(len(pairwise)), pairwise["final_error_m_t0"], s=12, color="0.20", alpha=0.62, label="Pair values")
-    ax.scatter(np.ones(len(pairwise)), pairwise["final_error_m_t1"], s=12, color="0.20", alpha=0.62)
+        ax.plot([0, 1], [r["final_error_m_t0"], r["final_error_m_t1"]], color=PAIR_LINE_COLOR, alpha=0.42, linewidth=0.8)
+    ax.scatter(np.zeros(len(pairwise)), pairwise["final_error_m_t0"], s=22, color=T0_COLOR, alpha=0.78, edgecolors="white", linewidths=0.25)
+    ax.scatter(np.ones(len(pairwise)), pairwise["final_error_m_t1"], s=22, color=T1_COLOR, alpha=0.78, edgecolors="white", linewidths=0.25)
 
     means = [pairwise["final_error_m_t0"].mean(), pairwise["final_error_m_t1"].mean()]
     sds = [pairwise["final_error_m_t0"].std(ddof=1), pairwise["final_error_m_t1"].std(ddof=1)]
-    ax.errorbar([0, 1], means, yerr=sds, fmt="o", color="black", ecolor="black", capsize=3, markersize=4, linewidth=1.1, label="Mean ± SD")
+    ax.errorbar([0, 1], means, yerr=sds, fmt="o", color=MEAN_COLOR, ecolor=MEAN_COLOR, capsize=3.5, markersize=4.8, linewidth=1.2, label="Mean ± SD")
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["T0", "T1"])
     ax.set_ylabel("Terminal landing error (m)")
     ax.set_xlabel("Treatment")
     ax.grid(axis="y")
     ax.set_xlim(-0.35, 1.35)
-    ax.text(0.03, 0.96, f"n = {len(pairwise)} pairs\n{test_label(hypothesis, 'final_error_m_delta_t0_minus_t1')}", transform=ax.transAxes, va="top", ha="left", fontsize=7.6)
+    ax.text(
+        0.06,
+        0.93,
+        f"n = {len(pairwise)} pairs\n{test_label(hypothesis, 'final_error_m_delta_t0_minus_t1')}",
+        transform=ax.transAxes,
+        bbox=ANNOTATION_BOX_KW,
+        **ANNOTATION_KW,
+    )
     panel_label(ax, "(a)")
 
     # Panel (b): paired differences by scenario.
@@ -361,7 +392,6 @@ def make_figure5(pairwise: pd.DataFrame, hypothesis: pd.DataFrame, output_dir: P
     )
     panel_label(ax, "(b)")
 
-    fig.tight_layout(w_pad=2.0)
     save_figure(fig, output_dir, "figure5_paired_terminal_landing_error")
 
 
@@ -369,24 +399,24 @@ def make_figure6(pairwise: pd.DataFrame, accepted: pd.DataFrame, hypothesis: pd.
     """Figure 6. Temporal and lateral-behavior outcomes."""
     wide = accepted_wide(accepted)
 
-    fig, axes = plt.subplots(2, 2, figsize=(7.2, 5.6))
+    fig, axes = plt.subplots(2, 2, figsize=(9.2, 7.0), constrained_layout=False)
     ax = axes[0, 0]
 
     # Panel (a): paired landing-loop time by treatment.
     for _, r in pairwise.iterrows():
-        ax.plot([0, 1], [r["landing_time_s_t0"], r["landing_time_s_t1"]], color="0.55", alpha=0.36, linewidth=0.65)
-    ax.scatter(np.zeros(len(pairwise)), pairwise["landing_time_s_t0"], s=12, color="0.20", alpha=0.62)
-    ax.scatter(np.ones(len(pairwise)), pairwise["landing_time_s_t1"], s=12, color="0.20", alpha=0.62)
+        ax.plot([0, 1], [r["landing_time_s_t0"], r["landing_time_s_t1"]], color=PAIR_LINE_COLOR, alpha=0.42, linewidth=0.8)
+    ax.scatter(np.zeros(len(pairwise)), pairwise["landing_time_s_t0"], s=22, color=T0_COLOR, alpha=0.78, edgecolors="white", linewidths=0.25)
+    ax.scatter(np.ones(len(pairwise)), pairwise["landing_time_s_t1"], s=22, color=T1_COLOR, alpha=0.78, edgecolors="white", linewidths=0.25)
     means = [pairwise["landing_time_s_t0"].mean(), pairwise["landing_time_s_t1"].mean()]
     sds = [pairwise["landing_time_s_t0"].std(ddof=1), pairwise["landing_time_s_t1"].std(ddof=1)]
-    ax.errorbar([0, 1], means, yerr=sds, fmt="o", color="black", ecolor="black", capsize=3, markersize=4, linewidth=1.1)
+    ax.errorbar([0, 1], means, yerr=sds, fmt="o", color=MEAN_COLOR, ecolor=MEAN_COLOR, capsize=3.5, markersize=4.8, linewidth=1.2)
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["T0", "T1"])
     ax.set_ylabel("Landing-loop time (s)")
     ax.set_xlabel("Treatment")
     ax.grid(axis="y")
     ax.set_xlim(-0.35, 1.35)
-    ax.text(0.03, 0.96, test_label(hypothesis, "landing_time_s_delta_t0_minus_t1"), transform=ax.transAxes, va="top", ha="left", fontsize=7.6)
+    ax.text(0.04, 0.96, test_label(hypothesis, "landing_time_s_delta_t0_minus_t1"), transform=ax.transAxes, **ANNOTATION_KW)
     panel_label(ax, "(a)")
 
     # Panel (b): landing-loop time difference by scenario.
@@ -409,7 +439,7 @@ def make_figure6(pairwise: pd.DataFrame, accepted: pd.DataFrame, hypothesis: pd.
         "Command-count difference, T1 − T0",
         jitter_seed=603,
     )
-    ax.text(0.03, 0.96, test_label(hypothesis, "command_count_delta_t1_minus_t0"), transform=ax.transAxes, va="top", ha="left", fontsize=7.6)
+    ax.text(0.04, 0.96, test_label(hypothesis, "command_count_delta_t1_minus_t0"), transform=ax.transAxes, **ANNOTATION_KW)
     panel_label(ax, "(c)")
 
     # Panel (d): maximum absolute horizontal command by treatment.
@@ -418,12 +448,12 @@ def make_figure6(pairwise: pd.DataFrame, accepted: pd.DataFrame, hypothesis: pd.
         ax.plot(
             [0, 1],
             [r["max_abs_horizontal_command_m_s_T0"], r["max_abs_horizontal_command_m_s_T1"]],
-            color="0.55",
-            alpha=0.36,
-            linewidth=0.65,
+            color=PAIR_LINE_COLOR,
+            alpha=0.42,
+            linewidth=0.8,
         )
-    ax.scatter(np.zeros(len(wide)), wide["max_abs_horizontal_command_m_s_T0"], s=12, color="0.20", alpha=0.62)
-    ax.scatter(np.ones(len(wide)), wide["max_abs_horizontal_command_m_s_T1"], s=12, color="0.20", alpha=0.62)
+    ax.scatter(np.zeros(len(wide)), wide["max_abs_horizontal_command_m_s_T0"], s=22, color=T0_COLOR, alpha=0.78, edgecolors="white", linewidths=0.25)
+    ax.scatter(np.ones(len(wide)), wide["max_abs_horizontal_command_m_s_T1"], s=22, color=T1_COLOR, alpha=0.78, edgecolors="white", linewidths=0.25)
     means = [
         wide["max_abs_horizontal_command_m_s_T0"].mean(),
         wide["max_abs_horizontal_command_m_s_T1"].mean(),
@@ -432,21 +462,21 @@ def make_figure6(pairwise: pd.DataFrame, accepted: pd.DataFrame, hypothesis: pd.
         wide["max_abs_horizontal_command_m_s_T0"].std(ddof=1),
         wide["max_abs_horizontal_command_m_s_T1"].std(ddof=1),
     ]
-    ax.errorbar([0, 1], means, yerr=sds, fmt="o", color="black", ecolor="black", capsize=3, markersize=4, linewidth=1.1)
+    ax.errorbar([0, 1], means, yerr=sds, fmt="o", color=MEAN_COLOR, ecolor=MEAN_COLOR, capsize=3.5, markersize=4.8, linewidth=1.2)
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["T0", "T1"])
-    ax.set_ylabel("Maximum absolute horizontal command (m/s)")
+    ax.set_ylabel("Maximum absolute horizontal command (m/s)", fontsize=10.0, labelpad=8)
     ax.set_xlabel("Treatment")
     ax.grid(axis="y")
     ax.set_xlim(-0.35, 1.35)
-    ax.text(0.03, 0.96, test_label(hypothesis, "max_abs_horizontal_command_m_s_delta_t1_minus_t0"), transform=ax.transAxes, va="top", ha="left", fontsize=7.6)
+    ax.text(0.04, 0.96, test_label(hypothesis, "max_abs_horizontal_command_m_s_delta_t1_minus_t0"), transform=ax.transAxes, **ANNOTATION_KW)
     panel_label(ax, "(d)")
 
-    fig.tight_layout(h_pad=2.0, w_pad=2.0)
+    fig.subplots_adjust(left=0.08, right=0.98, bottom=0.09, top=0.94, wspace=0.32, hspace=0.34)
     save_figure(fig, output_dir, "figure6_temporal_lateral_behavior_outcomes")
 
 
-def make_figure7(scenario: pd.DataFrame, output_dir: Path, show_factor_labels: bool = True) -> None:
+def make_figure7(scenario: pd.DataFrame, output_dir: Path, show_factor_labels: bool = False) -> None:
     """Figure 7. Scenario-level paired treatment differences."""
     scenario = scenario.sort_values("scenario_short").copy()
     if show_factor_labels:
@@ -458,7 +488,7 @@ def make_figure7(scenario: pd.DataFrame, output_dir: Path, show_factor_labels: b
         ylabels = scenario["scenario_short"].astype(str).tolist()
 
     y = np.arange(len(scenario))
-    fig, axes = plt.subplots(1, 3, figsize=(8.4, 3.65), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(9.2, 4.5), sharey=True, constrained_layout=True)
 
     panels = [
         (
@@ -481,9 +511,9 @@ def make_figure7(scenario: pd.DataFrame, output_dir: Path, show_factor_labels: b
         ),
     ]
 
-    for ax, col, xlabel, label in panels:
-        ax.barh(y, scenario[col], color="0.55", edgecolor="0.25", linewidth=0.6, height=0.66)
-        ax.axvline(0, color="0.35", linewidth=0.9, linestyle="--")
+    for idx, (ax, col, xlabel, label) in enumerate(panels):
+        ax.barh(y, scenario[col], color=BAR_COLORS[idx], edgecolor=BAR_EDGES[idx], linewidth=0.7, height=0.72, alpha=0.88)
+        ax.axvline(0, color=ZERO_LINE_COLOR, linewidth=0.9, linestyle="--")
         ax.set_xlabel(xlabel)
         ax.grid(axis="x")
         ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
@@ -494,7 +524,6 @@ def make_figure7(scenario: pd.DataFrame, output_dir: Path, show_factor_labels: b
     axes[0].invert_yaxis()
     axes[0].set_ylabel("Scenario")
 
-    fig.tight_layout(w_pad=2.0)
     save_figure(fig, output_dir, "figure7_scenario_level_treatment_differences")
 
 
@@ -527,9 +556,9 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--short-scenario-labels",
+        "--factor-scenario-labels",
         action="store_true",
-        help="Use only S01-S08 labels in Figure 7 instead of compact factor labels.",
+        help="Use compact factor labels in Figure 7 instead of the default S01-S08 manuscript labels.",
     )
     return parser.parse_args()
 
@@ -551,7 +580,7 @@ def main() -> None:
 
     make_figure5(pairwise, hypothesis, output_dir)
     make_figure6(pairwise, accepted, hypothesis, output_dir)
-    make_figure7(scenario, output_dir, show_factor_labels=not args.short_scenario_labels)
+    make_figure7(scenario, output_dir, show_factor_labels=args.factor_scenario_labels)
 
     print()
     print("Figure generation completed.")
@@ -564,6 +593,7 @@ def main() -> None:
     ]:
         print(f"- {stem}.png")
         print(f"- {stem}.svg")
+        print(f"- {stem}.pdf")
 
 
 if __name__ == "__main__":
